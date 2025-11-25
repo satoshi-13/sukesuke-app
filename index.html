@@ -3,392 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>スケ助 - AIスケジュール管理</title>
+    <title>スケ助</title>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <style>
         /* --- 基本設定 --- */
-        body, html { margin: 0; padding: 0; height: 100%; font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; color: #333; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; color: #333; overflow: hidden; }
+        #app-container { display: flex; flex-direction: column; height: 100vh; }
+
+        /* ヘッダー */
+        #app-header { background: #fff; padding: 10px 15px; display: flex; justify-content: flex-end; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); height: 50px; box-sizing: border-box; }
+        #user-info { font-weight: bold; color: #555; font-size: 0.9em; }
+
+        /* タイムライン */
+        #timeline-area { flex: 1; background: #fff; border-bottom: 2px solid #ddd; overflow: auto; display: grid; grid-template-columns: 90px repeat(auto-fill, minmax(90px, 1fr)); grid-auto-rows: minmax(50px, auto); }
+        .category-label { position: sticky; left: 0; background: #f8f9fa; z-index: 5; border-right: 2px solid #eee; border-bottom: 1px solid #eee; display: flex; align-items: center; padding: 0 5px; font-weight: bold; color: #555; font-size: 0.8em; }
+        .date-header { position: sticky; top: 0; background: #fff; z-index: 4; text-align: center; padding: 5px; border-bottom: 2px solid #eee; border-right: 1px solid #eee; font-weight: bold; color: #777; font-size: 0.8em; }
+        .timeline-cell { border-right: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; padding: 2px; vertical-align: top; }
+        .timeline-event-card { padding: 4px 6px; margin-bottom: 3px; border-radius: 4px; font-size: 0.75em; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border-left-width: 5px; border-left-style: solid; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; /* タップ可能に */ }
+
+        /* 枠色 */
+        .border-gold  { border: 3px solid #d4af37 !important; background-color: #fffbf0; }
+        .border-red   { border: 2px solid #ff4d4d !important; }
+        .border-blue  { border: 2px solid #4d79ff !important; }
+        .border-green { border: 2px solid #2eb82e !important; }
+
+        /* カレンダー */
+        #calendar-area { flex: 2; padding: 5px; background: #fff; overflow: hidden; }
+        .fc-event-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.85em; }
+        .fc-toolbar-title { font-size: 1.2em !important; }
+        .fc .fc-button { padding: 4px 8px; font-size: 0.9em; }
+
+        /* --- ボタン群 (FAB) --- */
+        .fab-container { position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 15px; z-index: 100; }
+        .fab-btn { width: 56px; height: 56px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 28px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; color: white; transition: transform 0.1s; }
+        .fab-btn:active { transform: scale(0.95); }
+        #camera-btn { background-color: #4285f4; }
+        #chat-btn { background-color: #34a853; } /* チャットは緑 */
+
+        /* --- モーダル共通 --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1500; justify-content: center; align-items: center; }
+        .modal-content { background: #fff; width: 90%; max-width: 400px; border-radius: 12px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; max-height: 80vh; }
         
-        /* --- レイアウトコンテナ --- */
-        #app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
-
-        /* --- ヘッダー --- */
-        #app-header {
-            background-color: #fff;
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            z-index: 10;
-        }
-        #app-title {
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #4285f4;
-            display: flex;
-            align-items: center;
-        }
-        #app-title span { margin-left: 10px; font-size: 0.8em; color: #666; }
-        #user-info { font-weight: bold; color: #555; }
-
-        /* --- 上部：タイムラインエリア（ガントチャート風） --- */
-        #timeline-area {
-            flex: 1; /* 画面の1/3程度 */
-            background-color: #fff;
-            border-bottom: 2px solid #ddd;
-            overflow: auto; /* 縦横スクロール */
-            position: relative;
-            display: grid;
-            /* 左側カテゴリー列固定、右側は日付の数だけ列を作る */
-            grid-template-columns: 120px repeat(auto-fill, minmax(100px, 1fr));
-            grid-auto-rows: minmax(60px, auto);
-        }
-
-        /* カテゴリーラベル列 */
-        .category-label {
-            position: sticky;
-            left: 0;
-            background-color: #f8f9fa;
-            z-index: 5;
-            border-right: 2px solid #eee;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            padding: 0 10px;
-            font-weight: bold;
-            color: #555;
-        }
-        /* 日付ヘッダー */
-        .date-header {
-            position: sticky;
-            top: 0;
-            background-color: #fff;
-            z-index: 4;
-            text-align: center;
-            padding: 5px;
-            border-bottom: 2px solid #eee;
-            border-right: 1px solid #eee;
-            font-weight: bold;
-            color: #777;
-        }
-
-        /* タイムラインのセルとイベントカード */
-        .timeline-cell {
-            border-right: 1px solid #f0f0f0;
-            border-bottom: 1px solid #f0f0f0;
-            padding: 5px;
-            vertical-align: top;
-        }
-        .timeline-event-card {
-            padding: 6px 8px;
-            margin-bottom: 5px;
-            border-radius: 6px;
-            font-size: 0.85em;
-            background-color: #fff;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border-left-width: 6px; /* カテゴリ色は左の太線で表現 */
-            border-left-style: solid;
-            white-space: normal;
-            overflow: hidden;
-        }
-
-        /* --- 枠色のルール（ご要望により変更） --- */
-        /* 金色をよりリッチにし、枠を太く強調 */
-        .border-gold  { border: 4px solid #d4af37 !important; background-color: #fffbf0; } /* 前日・当日 */
-        .border-red   { border: 2px solid #ff4d4d !important; } /* 3日以内 */
-        .border-blue  { border: 2px solid #4d79ff !important; } /* 1週間以内 */
-        .border-green { border: 2px solid #2eb82e !important; } /* 2週間以内 */
-
-        /* --- 下部：カレンダーエリア --- */
-        #calendar-area {
-            flex: 2; /* 画面の2/3程度 */
-            padding: 10px;
-            overflow-y: auto;
-            position: relative;
-            background-color: #fff;
-        }
-
-        /* --- 撮影ボタン (FAB) --- */
-        #camera-btn {
-            position: absolute;
-            bottom: 30px;
-            right: 20px;
-            width: 64px;
-            height: 64px;
-            background-color: #4285f4;
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 32px;
-            box-shadow: 0 4px 10px rgba(66, 133, 244, 0.4);
-            z-index: 100;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        #camera-btn:active { transform: scale(0.95); }
+        /* 画像アップロード用 */
+        #preview-image { width: 100%; max-height: 200px; object-fit: contain; margin-bottom: 15px; border-radius: 8px; border: 1px solid #eee; }
+        #prompt-input { width: 100%; height: 80px; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; font-family: inherit; resize: none; }
         
-        /* --- ロード画面 --- */
-        #loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.8);
-            color: #4285f4;
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            font-weight: bold;
-        }
+        /* チャット用 */
+        #chat-history { flex: 1; overflow-y: auto; margin-bottom: 10px; border: 1px solid #eee; border-radius: 8px; padding: 10px; background: #f9f9f9; min-height: 200px; }
+        .chat-msg { margin-bottom: 8px; padding: 8px 12px; border-radius: 12px; max-width: 80%; font-size: 0.9em; line-height: 1.4; }
+        .msg-user { background: #e3f2fd; align-self: flex-end; margin-left: auto; color: #333; }
+        .msg-ai { background: #fff; border: 1px solid #ddd; align-self: flex-start; margin-right: auto; color: #333; }
+        .chat-input-area { display: flex; gap: 5px; }
+        #chat-input-text { flex: 1; padding: 10px; border-radius: 20px; border: 1px solid #ccc; }
+
+        /* ボタン共通 */
+        .btn { padding: 10px 20px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; flex: 1; margin: 0 5px; }
+        .btn-cancel { background: #eee; color: #555; }
+        .btn-submit { background: #4285f4; color: white; }
+
+        #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.8); color: #4285f4; z-index: 2000; justify-content: center; align-items: center; flex-direction: column; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="app-container">
-    <header id="app-header">
-        <div id="app-title">🤖 スケ助<span>スケジュール</span></div>
-        <div id="user-info">西村哲 さん</div>
-    </header>
+    <header id="app-header"><div id="user-info">西村哲 さん</div></header>
+    <div id="timeline-area"><div style="padding:20px; grid-column:1/-1; color:#888;">読み込み中...</div></div>
+    <div id="calendar-area"><div id='calendar'></div></div>
+</div>
 
-    <div id="timeline-area">
-        <div style="padding:20px; grid-column: 1 / -1; color:#888;">読み込み中...</div>
+<div class="fab-container">
+    <div id="chat-btn" class="fab-btn" onclick="openChatModal()">💬</div>
+    <div id="camera-btn" class="fab-btn" onclick="document.getElementById('file-input').click()">📷</div>
+</div>
+<input type="file" id="file-input" accept="image/*" style="display: none;" onchange="openUploadModal(this)">
+
+<div id="upload-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div style="font-weight:bold; margin-bottom:10px;">AIへの指示 (任意)</div>
+        <img id="preview-image" src="">
+        <textarea id="prompt-input" placeholder="例：サッカーの予定だけ登録して。"></textarea>
+        <div style="display: flex; justify-content: space-between;">
+            <button class="btn btn-cancel" onclick="closeModal('upload-modal')">キャンセル</button>
+            <button class="btn btn-submit" onclick="submitImageWithPrompt()">送信</button>
         </div>
-
-    <div id="calendar-area">
-        <div id='calendar'></div>
     </div>
 </div>
 
-<div id="camera-btn" onclick="document.getElementById('file-input').click()">📷</div>
-<input type="file" id="file-input" accept="image/*" capture="environment" style="display: none;" onchange="handleImageUpload(this)">
-
-<div id="loading-overlay">
-    <div style="font-size: 2.5em; margin-bottom: 10px;">🤖</div>
-    <div style="font-size: 1.2em;">解析中...</div>
-    <p style="font-size: 0.9em; color: #666;">Geminiが画像を読んでいます</p>
+<div id="chat-modal" class="modal-overlay">
+    <div class="modal-content" style="height: 70vh;">
+        <div style="font-weight:bold; margin-bottom:10px; display:flex; justify-content:space-between;">
+            <span>🤖 スケ助チャット</span>
+            <span onclick="closeModal('chat-modal')" style="cursor:pointer;">✕</span>
+        </div>
+        <div id="chat-history">
+            <div class="chat-msg msg-ai">こんにちは！スケジュールのことなら何でも聞いてください。</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input-text" placeholder="例: 今月の公休はいつ？">
+            <button class="fab-btn" style="width:40px; height:40px; font-size:16px; background:#4285f4; margin:0;" onclick="sendChatMessage()">➤</button>
+        </div>
+    </div>
 </div>
 
+<div id="loading-overlay"><div style="font-size: 2em; margin-bottom: 10px;">🤖</div><div>処理中...</div></div>
+
 <script>
-    // ▼ あなたのGASのURL（そのまま使います）
+    // ▼ GASのURL（あなたのURL）
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxS7p_2ekWJWMak9ivwKTbro11sD1QH9G2oVJOOMKpS9SKxaqJaxTf59FZvcC-_wsKg/exec";
 
     let allEvents = [];
     let calendar;
-    // 表示するカテゴリーの定義と並び順
+    let selectedFileBase64 = null;
+    let selectedFileMimeType = null;
     const CATEGORIES = ['仕事', 'プライベート', '子供', 'サッカー', 'その他'];
 
-    document.addEventListener('DOMContentLoaded', function() {
-        initCalendar();
-        fetchData();
-    });
+    document.addEventListener('DOMContentLoaded', function() { initCalendar(); fetchData(); });
 
-    // 1. カレンダー初期化（変更なし）
     function initCalendar() {
         var calendarEl = document.getElementById('calendar');
         calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            locale: 'ja',
-            height: '100%',
+            initialView: 'dayGridMonth', locale: 'ja', height: '100%', contentHeight: 'auto', dayMaxEvents: true, fixedWeekCount: false,
             headerToolbar: { left: 'title', right: 'today prev,next' },
             dayCellContent: function(e) { e.dayNumberText = e.dayNumberText.replace('日', ''); },
-            eventClick: function(info) {
-                alert(`【${info.event.title}】\n日時: ${info.event.start.toLocaleString()}\nカテゴリー: ${info.event.extendedProps.category}\nメモ: ${info.event.extendedProps.memo}`);
-            },
+            eventClick: function(info) { showEventDetail(info.event); }, // クリック詳細表示
             eventContent: function(arg) {
                 let dotColor = getColorByCategory(arg.event.extendedProps.category);
-                return { html: `<span style="color:${dotColor}; font-size:1.2em; margin-right:4px;">●</span><span style="font-size:0.9em;">${arg.event.title}</span>` };
+                return { html: `<span style="color:${dotColor}; font-size:1em; margin-right:3px;">●</span>${arg.event.title}` };
             }
         });
         calendar.render();
     }
 
-    // 2. データ取得（変更なし）
     function fetchData() {
-        fetch(GAS_URL)
-            .then(response => response.json())
-            .then(data => {
-                allEvents = data;
-                updateCalendar(data);
-                updateTimeline(data);
-            })
-            .catch(error => console.error('Error:', error));
+        fetch(GAS_URL).then(r=>r.json()).then(d=>{ allEvents=d; updateCalendar(d); updateTimeline(d); }).catch(e=>console.error(e));
     }
+    function updateCalendar(d) { calendar.removeAllEvents(); calendar.addEventSource(d.map(i=>({title:i.title,start:i.start,end:i.end,extendedProps:{category:i.category,memo:i.memo}}))); }
 
-    // 3. カレンダー更新（変更なし）
-    function updateCalendar(data) {
-        calendar.removeAllEvents();
-        const events = data.map(item => ({
-            title: item.title, start: item.start, end: item.end,
-            extendedProps: { category: item.category, memo: item.memo }
-        }));
-        calendar.addEventSource(events);
-    }
-
-    // 4. タイムライン更新（★ここを大改造しました★）
+    // タイムライン更新（クリックイベント追加）
     function updateTimeline(data) {
-        const container = document.getElementById('timeline-area');
-        container.innerHTML = ""; // クリア
-
-        if (data.length === 0) {
-            container.innerHTML = '<div style="padding:20px; grid-column:1/-1;">予定がありません</div>';
-            return;
-        }
-
-        // データを日付とカテゴリーで整理
-        const eventsMap = {};
-        let minDate = new Date(); let maxDate = new Date();
-        
+        const container = document.getElementById('timeline-area'); container.innerHTML = "";
+        if (data.length === 0) { container.innerHTML = '<div style="padding:20px; grid-column:1/-1;">予定なし</div>'; return; }
+        const eventsMap = {}; let minDate = new Date(); let maxDate = new Date();
         data.forEach(item => {
-            const dateStr = new Date(item.start).toLocaleDateString();
-            const cat = normalizeCategory(item.category);
-            if (!eventsMap[dateStr]) eventsMap[dateStr] = {};
-            if (!eventsMap[dateStr][cat]) eventsMap[dateStr][cat] = [];
-            eventsMap[dateStr][cat].push(item);
-
-            const itemDate = new Date(item.start);
-            if (itemDate < minDate) minDate = itemDate;
-            if (itemDate > maxDate) maxDate = itemDate;
+            const dateStr = new Date(item.start).toLocaleDateString(); const cat = normalizeCategory(item.category);
+            if (!eventsMap[dateStr]) eventsMap[dateStr] = {}; if (!eventsMap[dateStr][cat]) eventsMap[dateStr][cat] = [];
+            eventsMap[dateStr][cat].push(item); const itemDate = new Date(item.start); if (itemDate < minDate) minDate = itemDate; if (itemDate > maxDate) maxDate = itemDate;
         });
-
-        // 表示する日付の範囲を決定（データが存在する範囲＋前後）
-        minDate.setDate(minDate.getDate() - 2);
-        maxDate.setDate(maxDate.getDate() + 14); // 少なくとも2週間先まで
-        const dateList = [];
-        for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
-            dateList.push(new Date(d));
-        }
-
-        // グリッドの列数を設定
-        container.style.gridTemplateColumns = `120px repeat(${dateList.length}, minmax(100px, 1fr))`;
-
-        // --- グリッドの描画 ---
-
-        // 左上の空白セル
-        const corner = document.createElement('div');
-        corner.className = 'category-label';
-        corner.style.gridRow = '1'; corner.style.gridColumn = '1';
-        corner.innerHTML = '<span style="font-size:0.8em; color:#999;">カテゴリー╲日付</span>';
-        container.appendChild(corner);
-
-        // 日付ヘッダー列の作成
+        minDate.setDate(minDate.getDate() - 2); maxDate.setDate(maxDate.getDate() + 14);
+        const dateList = []; for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) dateList.push(new Date(d));
+        container.style.gridTemplateColumns = `90px repeat(${dateList.length}, minmax(90px, 1fr))`;
+        const corner = document.createElement('div'); corner.className = 'category-label'; corner.style.gridRow = '1'; corner.style.gridColumn = '1'; corner.innerHTML = 'カテゴリー'; container.appendChild(corner);
         dateList.forEach((date, i) => {
-            const header = document.createElement('div');
-            header.className = 'date-header';
-            header.style.gridRow = '1';
-            header.style.gridColumn = `${i + 2}`; // 1列目はカテゴリなので+2
-            const dayOfWeek = ['日','月','火','水','木','金','土'][date.getDay()];
-            header.innerHTML = `${date.getMonth()+1}/${date.getDate()}<br><span style="font-size:0.8em;">(${dayOfWeek})</span>`;
-            if(date.getDay() === 0) header.style.color = '#dc3912'; // 日曜赤
-            if(date.getDay() === 6) header.style.color = '#3366cc'; // 土曜青
-            container.appendChild(header);
+            const header = document.createElement('div'); header.className = 'date-header'; header.style.gridRow = '1'; header.style.gridColumn = `${i + 2}`;
+            header.innerHTML = `${date.getMonth()+1}/${date.getDate()}(${['日','月','火','水','木','金','土'][date.getDay()]})`;
+            if(date.getDay()===0) header.style.color='#dc3912'; if(date.getDay()===6) header.style.color='#3366cc'; container.appendChild(header);
         });
-
-        // カテゴリー行の作成
         CATEGORIES.forEach((cat, catIndex) => {
-            // カテゴリーラベル（左端固定）
-            const label = document.createElement('div');
-            label.className = 'category-label';
-            label.style.gridRow = `${catIndex + 2}`;
-            label.style.gridColumn = '1';
-            label.style.borderLeft = `6px solid ${getColorByCategory(cat)}`;
-            label.innerText = cat;
-            container.appendChild(label);
-
-            // 各日付のセルと予定カードの作成
+            const label = document.createElement('div'); label.className = 'category-label'; label.style.gridRow = `${catIndex + 2}`; label.style.gridColumn = '1'; label.style.borderLeft = `4px solid ${getColorByCategory(cat)}`; label.innerText = cat; container.appendChild(label);
             dateList.forEach((date, dateIndex) => {
-                const cell = document.createElement('div');
-                cell.className = 'timeline-cell';
-                cell.style.gridRow = `${catIndex + 2}`;
-                cell.style.gridColumn = `${dateIndex + 2}`;
-
+                const cell = document.createElement('div'); cell.className = 'timeline-cell'; cell.style.gridRow = `${catIndex + 2}`; cell.style.gridColumn = `${dateIndex + 2}`;
                 const dateStr = date.toLocaleDateString();
                 if (eventsMap[dateStr] && eventsMap[dateStr][cat]) {
                     eventsMap[dateStr][cat].forEach(event => {
-                        const card = document.createElement('div');
-                        // ★ここで太い金色の枠線クラスなどを適用★
-                        card.className = `timeline-event-card ${getBorderColorClass(event.start)}`;
-                        card.style.borderLeftColor = getColorByCategory(event.category);
-                        card.innerHTML = `<strong>${event.title}</strong>`;
+                        const card = document.createElement('div'); 
+                        card.className = `timeline-event-card ${getBorderColorClass(event.start)}`; 
+                        card.style.borderLeftColor = getColorByCategory(cat); 
+                        card.innerHTML = event.title; 
+                        
+                        // ★ここ：タイムラインタップ時の処理を追加
+                        card.onclick = function() {
+                             // 簡易的なオブジェクトを作って詳細表示関数へ
+                            showEventDetail({ 
+                                title: event.title, 
+                                start: new Date(event.start), 
+                                extendedProps: { category: event.category, memo: event.memo } 
+                            });
+                        };
+                        
                         cell.appendChild(card);
                     });
-                }
-                container.appendChild(cell);
+                } container.appendChild(cell);
             });
         });
-
-        // 今日の日付付近までスクロール（簡易実装）
-        setTimeout(() => {
-            const todayHeader = Array.from(container.querySelectorAll('.date-header')).find(h => h.textContent.includes(`${new Date().getMonth()+1}/${new Date().getDate()}`));
-            if(todayHeader) todayHeader.scrollIntoView({ inline: 'center', block: 'nearest' });
-        }, 500);
+        setTimeout(() => { const t=Array.from(container.querySelectorAll('.date-header')).find(h=>h.textContent.includes(`${new Date().getMonth()+1}/${new Date().getDate()}`)); if(t)t.scrollIntoView({inline:'center',block:'nearest'}); }, 500);
     }
 
-    // 5. 画像アップロード（変更なし）
-    function handleImageUpload(input) {
+    // ★新規：詳細表示（カレンダー・タイムライン共通）
+    function showEventDetail(eventObj) {
+        const timeStr = eventObj.start.toLocaleString();
+        const cat = eventObj.extendedProps.category || 'なし';
+        const memo = eventObj.extendedProps.memo || 'なし';
+        alert(`【${eventObj.title}】\n----------------\n日時: ${timeStr}\nカテゴリー: ${cat}\nメモ: ${memo}`);
+    }
+
+    // ★新規：チャット機能
+    function openChatModal() { document.getElementById('chat-modal').style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+    
+    function sendChatMessage() {
+        const input = document.getElementById('chat-input-text');
+        const text = input.value.trim();
+        if(!text) return;
+
+        // ユーザーの吹き出し追加
+        addChatBubble(text, 'user');
+        input.value = '';
+
+        // GASへ送信
+        fetch(GAS_URL, {
+            method: 'POST',
+            body: JSON.stringify({ type: 'chat', text: text })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if(res.status === 'success') {
+                addChatBubble(res.answer, 'ai');
+            } else {
+                addChatBubble("エラーが発生しました", 'ai');
+            }
+        })
+        .catch(e => {
+            addChatBubble("通信エラー: " + e, 'ai');
+        });
+    }
+
+    function addChatBubble(text, sender) {
+        const history = document.getElementById('chat-history');
+        const div = document.createElement('div');
+        div.className = `chat-msg msg-${sender}`;
+        div.innerText = text;
+        history.appendChild(div);
+        history.scrollTop = history.scrollHeight; // 最下部へスクロール
+    }
+
+    // 画像アップロード用（既存）
+    function openUploadModal(input) {
         if (!input.files || !input.files[0]) return;
         const file = input.files[0];
         const reader = new FileReader();
-        document.getElementById('loading-overlay').style.display = 'flex';
         reader.onload = function(e) {
-            const base64 = e.target.result.split(',')[1];
-            fetch(GAS_URL, {
-                method: 'POST', body: JSON.stringify({ image: base64, mimeType: file.type })
-            })
-            .then(response => response.json())
-            .then(result => {
-                document.getElementById('loading-overlay').style.display = 'none';
-                if(result.status === 'success') { alert(result.message); fetchData(); }
-                else { alert('エラー: ' + result.message); }
-            })
-            .catch(err => {
-                document.getElementById('loading-overlay').style.display = 'none';
-                alert('通信エラー: ' + err);
-            });
+            selectedFileBase64 = e.target.result.split(',')[1]; selectedFileMimeType = file.type;
+            document.getElementById('preview-image').src = e.target.result; document.getElementById('prompt-input').value = '';
+            document.getElementById('upload-modal').style.display = 'flex';
         };
-        reader.readAsDataURL(file);
-        input.value = ''; // リセット
+        reader.readAsDataURL(file); input.value = '';
+    }
+    function submitImageWithPrompt() {
+        if (!selectedFileBase64) return;
+        closeModal('upload-modal'); document.getElementById('loading-overlay').style.display = 'flex';
+        const userPrompt = document.getElementById('prompt-input').value;
+        fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ image: selectedFileBase64, mimeType: selectedFileMimeType, prompt: userPrompt }) })
+        .then(r => r.json()).then(result => {
+            document.getElementById('loading-overlay').style.display = 'none';
+            if(result.status === 'success') { alert(result.message); fetchData(); } else { alert('エラー: ' + result.message); }
+        }).catch(err => { document.getElementById('loading-overlay').style.display = 'none'; alert('通信エラー: ' + err); });
     }
 
-    // --- ユーティリティ関数 ---
-
-    // カテゴリ名の揺らぎを吸収
-    function normalizeCategory(cat) {
-        if (!cat) return 'その他';
-        if (cat.includes('仕事')) return '仕事';
-        if (cat.includes('プライベート')) return 'プライベート';
-        if (cat.includes('子供') || cat.includes('サッカー')) return 'サッカー';
-        return 'その他';
-    }
-
-    // カテゴリ別の色
-    function getColorByCategory(cat) {
-        if (!cat) return '#999';
-        if (cat.includes('仕事')) return '#4285f4'; // 青系
-        if (cat.includes('プライベート')) return '#db4437'; // 赤系
-        if (cat.includes('子供') || cat.includes('サッカー')) return '#0f9d58'; // 緑系
-        return '#999'; // その他グレー
-    }
-
-    // 日数差による枠色（★ここを調整しました★）
-    function getBorderColorClass(dateStr) {
-        const targetDate = new Date(new Date(dateStr).setHours(0,0,0,0));
-        const today = new Date(new Date().setHours(0,0,0,0));
-        const diffTime = targetDate - today;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-
-        if (diffDays === 0 || diffDays === 1) return 'border-gold'; // 当日・翌日をゴールドに
-        if (diffDays > 1 && diffDays <= 3) return 'border-red';     // 3日以内
-        if (diffDays > 3 && diffDays <= 7) return 'border-blue';    // 1週間以内
-        if (diffDays > 7 && diffDays <= 14) return 'border-green';  // 2週間以内
-        return '';
-    }
+    // ユーティリティ
+    function normalizeCategory(c){if(!c)return'その他';if(c.includes('仕事'))return'仕事';if(c.includes('プライベート'))return'プライベート';if(c.includes('子供')||c.includes('サッカー'))return'サッカー';return'その他';}
+    function getColorByCategory(c){if(!c)return'#999';if(c.includes('仕事'))return'#4285f4';if(c.includes('プライベート'))return'#db4437';if(c.includes('子供')||c.includes('サッカー'))return'#0f9d58';return'#999';}
+    function getBorderColorClass(d){const t=new Date(new Date(d).setHours(0,0,0,0));const n=new Date(new Date().setHours(0,0,0,0));const df=Math.ceil((t-n)/(864e5));if(df===0||df===1)return'border-gold';if(df>1&&df<=3)return'border-red';if(df>3&&df<=7)return'border-blue';if(df>7&&df<=14)return'border-green';return'';}
 </script>
 </body>
 </html>
