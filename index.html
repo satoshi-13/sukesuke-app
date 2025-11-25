@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>スケ助 - AIスケジュール管理</title>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
+    <style>
+        /* --- 基本設定 --- */
+        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; overflow: hidden; }
+        
+        /* --- 画面分割レイアウト --- */
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        /* 上部 1/3：タイムラインエリア */
+        #timeline-area {
+            flex: 1; /* 1/3の比率 */
+            background-color: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+            overflow-x: auto; /* 横スクロール */
+            white-space: nowrap;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        /* 下部 2/3：カレンダーエリア */
+        #calendar-area {
+            flex: 2; /* 2/3の比率 */
+            padding: 10px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* --- タイムラインの装飾 --- */
+        .timeline-column {
+            display: inline-block;
+            vertical-align: top;
+            width: 140px;
+            margin-right: 5px;
+            background: #fff;
+            border-radius: 8px;
+            padding: 5px;
+            min-height: 90%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .timeline-date {
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+        .timeline-event {
+            padding: 5px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            background-color: #fff;
+            border-left: 5px solid #ccc; /* デフォルト */
+            white-space: normal; /* テキスト折り返し */
+        }
+
+        /* --- 枠色のルール（ユーザー要望） --- */
+        .border-gold  { border: 2px solid #FFD700 !important; background-color: #ffffe0; } /* 前日・当日 */
+        .border-red   { border: 2px solid #ff4d4d !important; } /* 3日以内 */
+        .border-blue  { border: 2px solid #4d79ff !important; } /* 1週間以内 */
+        .border-green { border: 2px solid #2eb82e !important; } /* 2週間以内 */
+
+        /* --- カテゴリ色（ドットや帯に使用） --- */
+        .cat-work { color: #3366cc; border-color: #3366cc; }
+        .cat-private { color: #dc3912; border-color: #dc3912; }
+        .cat-soccer { color: #109618; border-color: #109618; }
+        
+        /* --- 撮影ボタン (FAB) --- */
+        #camera-btn {
+            position: absolute;
+            bottom: 30px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: #4285f4;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 30px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            z-index: 1000;
+            cursor: pointer;
+        }
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            color: white;
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="timeline-area" id="timeline-container">
+        <div style="padding:20px; color:#888;">読み込み中...</div>
+    </div>
+
+    <div id="calendar-area">
+        <div id='calendar'></div>
+    </div>
+</div>
+
+<div id="camera-btn" onclick="document.getElementById('file-input').click()">📷</div>
+<input type="file" id="file-input" accept="image/*" capture="environment" style="display: none;" onchange="handleImageUpload(this)">
+
+<div id="loading-overlay">
+    <div style="font-size: 2em;">🤖 解析中...</div>
+    <p>Geminiが画像を読んでいます<br>そのままお待ちください</p>
+</div>
+
+<script>
+    // ▼ あなたのGASのURLを設定済み
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxS7p_2ekWJWMak9ivwKTbro11sD1QH9G2oVJOOMKpS9SKxaqJaxTf59FZvcC-_wsKg/exec";
+
+    let allEvents = [];
+    let calendar;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        initCalendar();
+        fetchData();
+    });
+
+    // 1. カレンダーの初期化
+    function initCalendar() {
+        var calendarEl = document.getElementById('calendar');
+        calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'ja',
+            height: '100%',
+            headerToolbar: {
+                left: 'prev,next',
+                center: 'title',
+                right: 'today'
+            },
+            eventClick: function(info) {
+                alert(`【${info.event.title}】\n日時: ${info.event.start.toLocaleString()}\nメモ: ${info.event.extendedProps.memo}`);
+            },
+            eventContent: function(arg) {
+                // カレンダー内の表示（色ドット●）
+                let dotColor = getColorByCategory(arg.event.extendedProps.category);
+                return { html: `<span style="color:${dotColor}; font-size:1.2em;">●</span> ${arg.event.title}` };
+            }
+        });
+        calendar.render();
+    }
+
+    // 2. データの取得 (GAS doGeT)
+    function fetchData() {
+        fetch(GAS_URL)
+            .then(response => response.json())
+            .then(data => {
+                allEvents = data;
+                updateCalendar(data);
+                updateTimeline(data);
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    // 3. カレンダーの更新
+    function updateCalendar(data) {
+        calendar.removeAllEvents();
+        const events = data.map(item => ({
+            title: item.title,
+            start: item.start,
+            end: item.end,
+            extendedProps: { category: item.category, memo: item.memo }
+        }));
+        calendar.addEventSource(events);
+    }
+
+    // 4. タイムラインの更新（横並び）
+    function updateTimeline(data) {
+        const container = document.getElementById('timeline-area');
+        container.innerHTML = ""; // クリア
+
+        // 日付ごとにグループ化
+        const grouped = {};
+        data.forEach(item => {
+            const dateKey = new Date(item.start).toLocaleDateString();
+            if (!grouped[dateKey]) grouped[dateKey] = [];
+            grouped[dateKey].push(item);
+        });
+
+        // 日付順にソート
+        const sortedDates = Object.keys(grouped).sort((a,b) => new Date(a) - new Date(b));
+
+        // 列を作成
+        sortedDates.forEach(date => {
+            const col = document.createElement('div');
+            col.className = 'timeline-column';
+            
+            // 日付ヘッダー
+            const header = document.createElement('div');
+            header.className = 'timeline-date';
+            header.innerText = date;
+            col.appendChild(header);
+
+            // その日の予定カード
+            grouped[date].forEach(event => {
+                const card = document.createElement('div');
+                card.className = `timeline-event ${getBorderColorClass(event.start)}`;
+                
+                // カテゴリごとの左線の色
+                const catColor = getColorByCategory(event.category);
+                card.style.borderLeftColor = catColor;
+
+                card.innerHTML = `<strong>${event.title}</strong><br><span style="font-size:0.8em">${event.category}</span>`;
+                col.appendChild(card);
+            });
+            container.appendChild(col);
+        });
+    }
+
+    // 5. 画像アップロード処理 (GAS doPost)
+    function handleImageUpload(input) {
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            
+            document.getElementById('loading-overlay').style.display = 'flex'; // ローディング表示
+
+            reader.onload = function(e) {
+                const base64 = e.target.result.split(',')[1]; // Base64部分のみ抽出
+                const payload = {
+                    image: base64,
+                    mimeType: file.type
+                };
+
+                // GASへ送信
+                fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                })
+                .then(response => response.json())
+                .then(result => {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    if(result.status === 'success') {
+                        alert(result.message);
+                        fetchData(); // データを再読込
+                    } else {
+                        alert('エラー: ' + result.message);
+                    }
+                })
+                .catch(err => {
+                    document.getElementById('loading-overlay').style.display = 'none';
+                    alert('通信エラー: ' + err);
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    // --- ユーティリティ ---
+
+    // カテゴリ別の色定義
+    function getColorByCategory(cat) {
+        if (!cat) return '#888';
+        if (cat.includes('仕事')) return '#3366cc'; // 青
+        if (cat.includes('プライベート')) return '#dc3912'; // 赤
+        if (cat.includes('子供') || cat.includes('サッカー')) return '#109618'; // 緑
+        return '#888';
+    }
+
+    // 日数差による枠色の決定（ユーザー要望）
+    function getBorderColorClass(dateStr) {
+        const targetDate = new Date(dateStr);
+        const today = new Date();
+        const diffTime = targetDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+        if (diffDays <= 1) return 'border-gold';   // 前日・当日・明日
+        if (diffDays <= 3) return 'border-red';    // 3日以内
+        if (diffDays <= 7) return 'border-blue';   // 1週間以内
+        if (diffDays <= 14) return 'border-green'; // 2週間以内
+        return '';
+    }
+</script>
+
+</body>
+</html>
