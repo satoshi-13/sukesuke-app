@@ -7,111 +7,159 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <style>
         /* --- 基本設定 --- */
-        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; font-family: "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; color: #333; }
         
-        /* --- 画面分割レイアウト --- */
+        /* --- レイアウトコンテナ --- */
         #app-container {
             display: flex;
             flex-direction: column;
             height: 100vh;
         }
-        
-        /* 上部 1/3：タイムラインエリア */
-        #timeline-area {
-            flex: 1; /* 1/3の比率 */
-            background-color: #f5f5f5;
-            border-bottom: 2px solid #ddd;
-            overflow-x: auto; /* 横スクロール */
-            white-space: nowrap;
-            padding: 10px;
-            box-sizing: border-box;
-        }
 
-        /* 下部 2/3：カレンダーエリア */
-        #calendar-area {
-            flex: 2; /* 2/3の比率 */
-            padding: 10px;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        /* --- タイムラインの装飾 --- */
-        .timeline-column {
-            display: inline-block;
-            vertical-align: top;
-            width: 140px;
-            margin-right: 5px;
-            background: #fff;
-            border-radius: 8px;
-            padding: 5px;
-            min-height: 90%;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .timeline-date {
-            font-weight: bold;
-            text-align: center;
-            border-bottom: 1px solid #eee;
-            margin-bottom: 5px;
-            font-size: 0.9em;
-        }
-        .timeline-event {
-            padding: 5px;
-            margin-bottom: 5px;
-            border-radius: 4px;
-            font-size: 0.8em;
+        /* --- ヘッダー --- */
+        #app-header {
             background-color: #fff;
-            border-left: 5px solid #ccc; /* デフォルト */
-            white-space: normal; /* テキスト折り返し */
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+        #app-title {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4285f4;
+            display: flex;
+            align-items: center;
+        }
+        #app-title span { margin-left: 10px; font-size: 0.8em; color: #666; }
+        #user-info { font-weight: bold; color: #555; }
+
+        /* --- 上部：タイムラインエリア（ガントチャート風） --- */
+        #timeline-area {
+            flex: 1; /* 画面の1/3程度 */
+            background-color: #fff;
+            border-bottom: 2px solid #ddd;
+            overflow: auto; /* 縦横スクロール */
+            position: relative;
+            display: grid;
+            /* 左側カテゴリー列固定、右側は日付の数だけ列を作る */
+            grid-template-columns: 120px repeat(auto-fill, minmax(100px, 1fr));
+            grid-auto-rows: minmax(60px, auto);
         }
 
-        /* --- 枠色のルール（ユーザー要望） --- */
-        .border-gold  { border: 2px solid #FFD700 !important; background-color: #ffffe0; } /* 前日・当日 */
+        /* カテゴリーラベル列 */
+        .category-label {
+            position: sticky;
+            left: 0;
+            background-color: #f8f9fa;
+            z-index: 5;
+            border-right: 2px solid #eee;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        /* 日付ヘッダー */
+        .date-header {
+            position: sticky;
+            top: 0;
+            background-color: #fff;
+            z-index: 4;
+            text-align: center;
+            padding: 5px;
+            border-bottom: 2px solid #eee;
+            border-right: 1px solid #eee;
+            font-weight: bold;
+            color: #777;
+        }
+
+        /* タイムラインのセルとイベントカード */
+        .timeline-cell {
+            border-right: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 5px;
+            vertical-align: top;
+        }
+        .timeline-event-card {
+            padding: 6px 8px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            background-color: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left-width: 6px; /* カテゴリ色は左の太線で表現 */
+            border-left-style: solid;
+            white-space: normal;
+            overflow: hidden;
+        }
+
+        /* --- 枠色のルール（ご要望により変更） --- */
+        /* 金色をよりリッチにし、枠を太く強調 */
+        .border-gold  { border: 4px solid #d4af37 !important; background-color: #fffbf0; } /* 前日・当日 */
         .border-red   { border: 2px solid #ff4d4d !important; } /* 3日以内 */
         .border-blue  { border: 2px solid #4d79ff !important; } /* 1週間以内 */
         .border-green { border: 2px solid #2eb82e !important; } /* 2週間以内 */
 
-        /* --- カテゴリ色（ドットや帯に使用） --- */
-        .cat-work { color: #3366cc; border-color: #3366cc; }
-        .cat-private { color: #dc3912; border-color: #dc3912; }
-        .cat-soccer { color: #109618; border-color: #109618; }
-        
+        /* --- 下部：カレンダーエリア --- */
+        #calendar-area {
+            flex: 2; /* 画面の2/3程度 */
+            padding: 10px;
+            overflow-y: auto;
+            position: relative;
+            background-color: #fff;
+        }
+
         /* --- 撮影ボタン (FAB) --- */
         #camera-btn {
             position: absolute;
             bottom: 30px;
             right: 20px;
-            width: 60px;
-            height: 60px;
+            width: 64px;
+            height: 64px;
             background-color: #4285f4;
             color: white;
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 30px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            z-index: 1000;
+            font-size: 32px;
+            box-shadow: 0 4px 10px rgba(66, 133, 244, 0.4);
+            z-index: 100;
             cursor: pointer;
+            transition: transform 0.1s;
         }
+        #camera-btn:active { transform: scale(0.95); }
+        
+        /* --- ロード画面 --- */
         #loading-overlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            color: white;
+            background: rgba(255,255,255,0.8);
+            color: #4285f4;
             z-index: 2000;
             justify-content: center;
             align-items: center;
             flex-direction: column;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
 <div id="app-container">
-    <div id="timeline-area" id="timeline-container">
-        <div style="padding:20px; color:#888;">読み込み中...</div>
-    </div>
+    <header id="app-header">
+        <div id="app-title">🤖 スケ助<span>スケジュール</span></div>
+        <div id="user-info">西村哲 さん</div>
+    </header>
+
+    <div id="timeline-area">
+        <div style="padding:20px; grid-column: 1 / -1; color:#888;">読み込み中...</div>
+        </div>
 
     <div id="calendar-area">
         <div id='calendar'></div>
@@ -122,47 +170,46 @@
 <input type="file" id="file-input" accept="image/*" capture="environment" style="display: none;" onchange="handleImageUpload(this)">
 
 <div id="loading-overlay">
-    <div style="font-size: 2em;">🤖 解析中...</div>
-    <p>Geminiが画像を読んでいます<br>そのままお待ちください</p>
+    <div style="font-size: 2.5em; margin-bottom: 10px;">🤖</div>
+    <div style="font-size: 1.2em;">解析中...</div>
+    <p style="font-size: 0.9em; color: #666;">Geminiが画像を読んでいます</p>
 </div>
 
 <script>
-    // ▼ あなたのGASのURLを設定済み
+    // ▼ あなたのGASのURL（そのまま使います）
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxS7p_2ekWJWMak9ivwKTbro11sD1QH9G2oVJOOMKpS9SKxaqJaxTf59FZvcC-_wsKg/exec";
 
     let allEvents = [];
     let calendar;
+    // 表示するカテゴリーの定義と並び順
+    const CATEGORIES = ['仕事', 'プライベート', '子供', 'サッカー', 'その他'];
 
     document.addEventListener('DOMContentLoaded', function() {
         initCalendar();
         fetchData();
     });
 
-    // 1. カレンダーの初期化
+    // 1. カレンダー初期化（変更なし）
     function initCalendar() {
         var calendarEl = document.getElementById('calendar');
         calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
             locale: 'ja',
             height: '100%',
-            headerToolbar: {
-                left: 'prev,next',
-                center: 'title',
-                right: 'today'
-            },
+            headerToolbar: { left: 'title', right: 'today prev,next' },
+            dayCellContent: function(e) { e.dayNumberText = e.dayNumberText.replace('日', ''); },
             eventClick: function(info) {
-                alert(`【${info.event.title}】\n日時: ${info.event.start.toLocaleString()}\nメモ: ${info.event.extendedProps.memo}`);
+                alert(`【${info.event.title}】\n日時: ${info.event.start.toLocaleString()}\nカテゴリー: ${info.event.extendedProps.category}\nメモ: ${info.event.extendedProps.memo}`);
             },
             eventContent: function(arg) {
-                // カレンダー内の表示（色ドット●）
                 let dotColor = getColorByCategory(arg.event.extendedProps.category);
-                return { html: `<span style="color:${dotColor}; font-size:1.2em;">●</span> ${arg.event.title}` };
+                return { html: `<span style="color:${dotColor}; font-size:1.2em; margin-right:4px;">●</span><span style="font-size:0.9em;">${arg.event.title}</span>` };
             }
         });
         calendar.render();
     }
 
-    // 2. データの取得 (GAS doGeT)
+    // 2. データ取得（変更なし）
     function fetchData() {
         fetch(GAS_URL)
             .then(response => response.json())
@@ -174,125 +221,174 @@
             .catch(error => console.error('Error:', error));
     }
 
-    // 3. カレンダーの更新
+    // 3. カレンダー更新（変更なし）
     function updateCalendar(data) {
         calendar.removeAllEvents();
         const events = data.map(item => ({
-            title: item.title,
-            start: item.start,
-            end: item.end,
+            title: item.title, start: item.start, end: item.end,
             extendedProps: { category: item.category, memo: item.memo }
         }));
         calendar.addEventSource(events);
     }
 
-    // 4. タイムラインの更新（横並び）
+    // 4. タイムライン更新（★ここを大改造しました★）
     function updateTimeline(data) {
         const container = document.getElementById('timeline-area');
         container.innerHTML = ""; // クリア
 
-        // 日付ごとにグループ化
-        const grouped = {};
-        data.forEach(item => {
-            const dateKey = new Date(item.start).toLocaleDateString();
-            if (!grouped[dateKey]) grouped[dateKey] = [];
-            grouped[dateKey].push(item);
-        });
-
-        // 日付順にソート
-        const sortedDates = Object.keys(grouped).sort((a,b) => new Date(a) - new Date(b));
-
-        // 列を作成
-        sortedDates.forEach(date => {
-            const col = document.createElement('div');
-            col.className = 'timeline-column';
-            
-            // 日付ヘッダー
-            const header = document.createElement('div');
-            header.className = 'timeline-date';
-            header.innerText = date;
-            col.appendChild(header);
-
-            // その日の予定カード
-            grouped[date].forEach(event => {
-                const card = document.createElement('div');
-                card.className = `timeline-event ${getBorderColorClass(event.start)}`;
-                
-                // カテゴリごとの左線の色
-                const catColor = getColorByCategory(event.category);
-                card.style.borderLeftColor = catColor;
-
-                card.innerHTML = `<strong>${event.title}</strong><br><span style="font-size:0.8em">${event.category}</span>`;
-                col.appendChild(card);
-            });
-            container.appendChild(col);
-        });
-    }
-
-    // 5. 画像アップロード処理 (GAS doPost)
-    function handleImageUpload(input) {
-        if (input.files && input.files[0]) {
-            const file = input.files[0];
-            const reader = new FileReader();
-            
-            document.getElementById('loading-overlay').style.display = 'flex'; // ローディング表示
-
-            reader.onload = function(e) {
-                const base64 = e.target.result.split(',')[1]; // Base64部分のみ抽出
-                const payload = {
-                    image: base64,
-                    mimeType: file.type
-                };
-
-                // GASへ送信
-                fetch(GAS_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                })
-                .then(response => response.json())
-                .then(result => {
-                    document.getElementById('loading-overlay').style.display = 'none';
-                    if(result.status === 'success') {
-                        alert(result.message);
-                        fetchData(); // データを再読込
-                    } else {
-                        alert('エラー: ' + result.message);
-                    }
-                })
-                .catch(err => {
-                    document.getElementById('loading-overlay').style.display = 'none';
-                    alert('通信エラー: ' + err);
-                });
-            };
-            reader.readAsDataURL(file);
+        if (data.length === 0) {
+            container.innerHTML = '<div style="padding:20px; grid-column:1/-1;">予定がありません</div>';
+            return;
         }
+
+        // データを日付とカテゴリーで整理
+        const eventsMap = {};
+        let minDate = new Date(); let maxDate = new Date();
+        
+        data.forEach(item => {
+            const dateStr = new Date(item.start).toLocaleDateString();
+            const cat = normalizeCategory(item.category);
+            if (!eventsMap[dateStr]) eventsMap[dateStr] = {};
+            if (!eventsMap[dateStr][cat]) eventsMap[dateStr][cat] = [];
+            eventsMap[dateStr][cat].push(item);
+
+            const itemDate = new Date(item.start);
+            if (itemDate < minDate) minDate = itemDate;
+            if (itemDate > maxDate) maxDate = itemDate;
+        });
+
+        // 表示する日付の範囲を決定（データが存在する範囲＋前後）
+        minDate.setDate(minDate.getDate() - 2);
+        maxDate.setDate(maxDate.getDate() + 14); // 少なくとも2週間先まで
+        const dateList = [];
+        for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) {
+            dateList.push(new Date(d));
+        }
+
+        // グリッドの列数を設定
+        container.style.gridTemplateColumns = `120px repeat(${dateList.length}, minmax(100px, 1fr))`;
+
+        // --- グリッドの描画 ---
+
+        // 左上の空白セル
+        const corner = document.createElement('div');
+        corner.className = 'category-label';
+        corner.style.gridRow = '1'; corner.style.gridColumn = '1';
+        corner.innerHTML = '<span style="font-size:0.8em; color:#999;">カテゴリー╲日付</span>';
+        container.appendChild(corner);
+
+        // 日付ヘッダー列の作成
+        dateList.forEach((date, i) => {
+            const header = document.createElement('div');
+            header.className = 'date-header';
+            header.style.gridRow = '1';
+            header.style.gridColumn = `${i + 2}`; // 1列目はカテゴリなので+2
+            const dayOfWeek = ['日','月','火','水','木','金','土'][date.getDay()];
+            header.innerHTML = `${date.getMonth()+1}/${date.getDate()}<br><span style="font-size:0.8em;">(${dayOfWeek})</span>`;
+            if(date.getDay() === 0) header.style.color = '#dc3912'; // 日曜赤
+            if(date.getDay() === 6) header.style.color = '#3366cc'; // 土曜青
+            container.appendChild(header);
+        });
+
+        // カテゴリー行の作成
+        CATEGORIES.forEach((cat, catIndex) => {
+            // カテゴリーラベル（左端固定）
+            const label = document.createElement('div');
+            label.className = 'category-label';
+            label.style.gridRow = `${catIndex + 2}`;
+            label.style.gridColumn = '1';
+            label.style.borderLeft = `6px solid ${getColorByCategory(cat)}`;
+            label.innerText = cat;
+            container.appendChild(label);
+
+            // 各日付のセルと予定カードの作成
+            dateList.forEach((date, dateIndex) => {
+                const cell = document.createElement('div');
+                cell.className = 'timeline-cell';
+                cell.style.gridRow = `${catIndex + 2}`;
+                cell.style.gridColumn = `${dateIndex + 2}`;
+
+                const dateStr = date.toLocaleDateString();
+                if (eventsMap[dateStr] && eventsMap[dateStr][cat]) {
+                    eventsMap[dateStr][cat].forEach(event => {
+                        const card = document.createElement('div');
+                        // ★ここで太い金色の枠線クラスなどを適用★
+                        card.className = `timeline-event-card ${getBorderColorClass(event.start)}`;
+                        card.style.borderLeftColor = getColorByCategory(event.category);
+                        card.innerHTML = `<strong>${event.title}</strong>`;
+                        cell.appendChild(card);
+                    });
+                }
+                container.appendChild(cell);
+            });
+        });
+
+        // 今日の日付付近までスクロール（簡易実装）
+        setTimeout(() => {
+            const todayHeader = Array.from(container.querySelectorAll('.date-header')).find(h => h.textContent.includes(`${new Date().getMonth()+1}/${new Date().getDate()}`));
+            if(todayHeader) todayHeader.scrollIntoView({ inline: 'center', block: 'nearest' });
+        }, 500);
     }
 
-    // --- ユーティリティ ---
+    // 5. 画像アップロード（変更なし）
+    function handleImageUpload(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const reader = new FileReader();
+        document.getElementById('loading-overlay').style.display = 'flex';
+        reader.onload = function(e) {
+            const base64 = e.target.result.split(',')[1];
+            fetch(GAS_URL, {
+                method: 'POST', body: JSON.stringify({ image: base64, mimeType: file.type })
+            })
+            .then(response => response.json())
+            .then(result => {
+                document.getElementById('loading-overlay').style.display = 'none';
+                if(result.status === 'success') { alert(result.message); fetchData(); }
+                else { alert('エラー: ' + result.message); }
+            })
+            .catch(err => {
+                document.getElementById('loading-overlay').style.display = 'none';
+                alert('通信エラー: ' + err);
+            });
+        };
+        reader.readAsDataURL(file);
+        input.value = ''; // リセット
+    }
 
-    // カテゴリ別の色定義
+    // --- ユーティリティ関数 ---
+
+    // カテゴリ名の揺らぎを吸収
+    function normalizeCategory(cat) {
+        if (!cat) return 'その他';
+        if (cat.includes('仕事')) return '仕事';
+        if (cat.includes('プライベート')) return 'プライベート';
+        if (cat.includes('子供') || cat.includes('サッカー')) return 'サッカー';
+        return 'その他';
+    }
+
+    // カテゴリ別の色
     function getColorByCategory(cat) {
-        if (!cat) return '#888';
-        if (cat.includes('仕事')) return '#3366cc'; // 青
-        if (cat.includes('プライベート')) return '#dc3912'; // 赤
-        if (cat.includes('子供') || cat.includes('サッカー')) return '#109618'; // 緑
-        return '#888';
+        if (!cat) return '#999';
+        if (cat.includes('仕事')) return '#4285f4'; // 青系
+        if (cat.includes('プライベート')) return '#db4437'; // 赤系
+        if (cat.includes('子供') || cat.includes('サッカー')) return '#0f9d58'; // 緑系
+        return '#999'; // その他グレー
     }
 
-    // 日数差による枠色の決定（ユーザー要望）
+    // 日数差による枠色（★ここを調整しました★）
     function getBorderColorClass(dateStr) {
-        const targetDate = new Date(dateStr);
-        const today = new Date();
+        const targetDate = new Date(new Date(dateStr).setHours(0,0,0,0));
+        const today = new Date(new Date().setHours(0,0,0,0));
         const diffTime = targetDate - today;
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
 
-        if (diffDays <= 1) return 'border-gold';   // 前日・当日・明日
-        if (diffDays <= 3) return 'border-red';    // 3日以内
-        if (diffDays <= 7) return 'border-blue';   // 1週間以内
-        if (diffDays <= 14) return 'border-green'; // 2週間以内
+        if (diffDays === 0 || diffDays === 1) return 'border-gold'; // 当日・翌日をゴールドに
+        if (diffDays > 1 && diffDays <= 3) return 'border-red';     // 3日以内
+        if (diffDays > 3 && diffDays <= 7) return 'border-blue';    // 1週間以内
+        if (diffDays > 7 && diffDays <= 14) return 'border-green';  // 2週間以内
         return '';
     }
 </script>
-
 </body>
 </html>
