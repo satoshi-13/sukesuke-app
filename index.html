@@ -13,60 +13,55 @@
         /* --- ヘッダー --- */
         #app-header {
             background: #fff; padding: 0 15px; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); height: 50px; box-sizing: border-box; z-index: 10;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); height: 50px; box-sizing: border-box; z-index: 10; flex-shrink: 0;
         }
         .header-left { font-weight: bold; font-size: 1.1em; color: #4285f4; display: flex; align-items: center; }
         .header-right { display: flex; align-items: center; font-size: 0.9em; color: #555; }
         .settings-icon { font-size: 1.4em; margin-right: 10px; cursor: pointer; color: #777; padding: 5px; }
 
-        /* --- タイムラインエリア --- */
+        /* --- タイムラインエリア (1/3) --- */
         #timeline-area {
-            flex: 1; /* 画面の1/3 */
+            flex: 1; 
             background: #fff; border-bottom: 2px solid #ddd; overflow: auto;
             display: grid; grid-template-columns: 80px repeat(auto-fill, minmax(80px, 1fr)); grid-auto-rows: minmax(50px, auto);
         }
-        /* タイムライン装飾 */
         .category-label { position: sticky; left: 0; background: #f8f9fa; z-index: 5; border-right: 2px solid #eee; border-bottom: 1px solid #eee; display: flex; align-items: center; padding: 0 5px; font-weight: bold; color: #555; font-size: 0.75em; }
         .date-header { position: sticky; top: 0; background: #fff; z-index: 4; text-align: center; padding: 4px; border-bottom: 2px solid #eee; border-right: 1px solid #eee; font-weight: bold; color: #555; font-size: 0.75em; }
         .timeline-cell { border-right: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; padding: 2px; vertical-align: top; }
         .timeline-event-card { padding: 3px 4px; margin-bottom: 2px; border-radius: 3px; font-size: 0.7em; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border-left-width: 4px; border-left-style: solid; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* --- カレンダーエリア --- */
+        /* --- カレンダーエリア (2/3) --- */
         #calendar-area {
-            flex: 2; /* 画面の2/3 */
+            flex: 2; 
             padding: 5px; background: #fff; overflow: hidden; position: relative;
         }
         #calendar { height: 100%; font-size: 0.85em; }
 
-        /* ★日付表示の修正とスクロール設定 */
-        .fc-daygrid-day-frame {
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-            height: 100%; /* セルの高さを確保 */
-        }
+        /* ★日付表示の修正（絶対表示） */
         .fc-daygrid-day-top {
-            flex-shrink: 0; 
-            z-index: 10; /* 日付を最前面に */
-            background: rgba(255,255,255,0.8); /* 予定が重なっても読めるように */
+            flex-direction: row !important;
+            opacity: 1 !important;
         }
         .fc-daygrid-day-number {
             font-size: 1.1em !important; 
             font-weight: bold !important; 
-            color: #444 !important; 
-            margin: 2px 4px !important;
+            color: #333 !important; 
+            z-index: 10;
+            padding: 4px !important;
+            text-decoration: none !important;
             visibility: visible !important; /* 強制表示 */
         }
+
+        /* ★マス内スクロール設定（ここがポイント） */
         .fc-daygrid-day-events {
-            flex-grow: 1;
-            overflow-y: auto !important; /* ★ここが重要：マス内スクロール */
-            min-height: 0; /* Flexboxでの縮小許可 */
-            padding-bottom: 15px; /* スクロール最下部の余白 */
-            scrollbar-width: thin; 
+            /* 予定2つ分くらいの高さに制限（約40-50px） */
+            max-height: 48px; 
+            overflow-y: auto !important; 
+            margin-top: 2px;
+            /* スクロールバーを見えにくくしてスッキリさせる */
+            scrollbar-width: none; /* Firefox */
         }
-        /* スクロールバーの見た目調整 */
-        .fc-daygrid-day-events::-webkit-scrollbar { width: 4px; }
-        .fc-daygrid-day-events::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
+        .fc-daygrid-day-events::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
 
         /* 土日の色 */
         .fc-day-sat .fc-daygrid-day-number { color: #3366cc !important; }
@@ -110,9 +105,14 @@
         .settings-group { margin-bottom: 20px; }
         .settings-group label { font-weight: bold; display: block; margin-bottom: 5px; color: #555; }
         .settings-input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        .color-picker-list { display: flex; flex-direction: column; gap: 10px; }
-        .color-item { display: flex; align-items: center; justify-content: space-between; }
-        .color-input { width: 50px; height: 30px; padding: 0; border: none; cursor: pointer; }
+        
+        /* カテゴリ編集リスト */
+        .category-edit-list { display: flex; flex-direction: column; gap: 8px; }
+        .category-edit-item { display: flex; align-items: center; gap: 5px; }
+        .category-name-input { flex: 1; padding: 5px; border: 1px solid #ddd; border-radius: 4px; }
+        .btn-sm { padding: 5px 10px; border-radius: 4px; border: none; cursor: pointer; color: white; font-size: 0.8em; }
+        .btn-danger { background: #ff4d4d; }
+        .btn-add { background: #4285f4; margin-top: 5px; width: 100%; }
 
         /* ボタン */
         .btn { padding: 10px; border-radius: 20px; border: none; font-weight: bold; cursor: pointer; flex: 1; margin: 0 5px; font-size: 0.9em; text-align: center; }
@@ -178,21 +178,10 @@
         </div>
 
         <div class="settings-group">
-            <label>カテゴリー色設定</label>
-            <div class="color-picker-list">
-                <div class="color-item">
-                    <span>仕事</span>
-                    <input type="color" id="color-work" class="color-input" value="#4285f4">
+            <label>カテゴリー編集</label>
+            <div id="category-list-container" class="category-edit-list">
                 </div>
-                <div class="color-item">
-                    <span>プライベート</span>
-                    <input type="color" id="color-private" class="color-input" value="#db4437">
-                </div>
-                <div class="color-item">
-                    <span>子供/サッカー</span>
-                    <input type="color" id="color-soccer" class="color-input" value="#0f9d58">
-                </div>
-            </div>
+            <button class="btn-sm btn-add" onclick="addNewCategoryInput()">＋ カテゴリを追加</button>
         </div>
 
         <div style="display: flex; gap:10px; margin-top:10px;">
@@ -212,22 +201,26 @@
     let calendar;
     let selectedFileBase64 = null; let selectedFileMimeType = null;
     
-    // デフォルト設定
+    // デフォルト設定（カテゴリは配列で管理、色は別途マッピング）
     let appSettings = {
         username: "西村哲 さん",
-        colors: { work: "#4285f4", private: "#db4437", soccer: "#0f9d58" }
+        categories: [
+            { name: "仕事", color: "#4285f4" },
+            { name: "プライベート", color: "#db4437" },
+            { name: "子供", color: "#0f9d58" },
+            { name: "サッカー", color: "#0f9d58" }
+        ]
     };
-    const CATEGORIES = ['仕事', 'プライベート', '子供', 'サッカー', 'その他'];
 
     document.addEventListener('DOMContentLoaded', function() {
-        loadSettings(); // 設定読み込み
+        loadSettings(); 
         initCalendar(); 
         fetchData(); 
     });
 
     // --- 設定関連の処理 ---
     function loadSettings() {
-        const saved = localStorage.getItem('sukesuke_settings');
+        const saved = localStorage.getItem('sukesuke_settings_v2');
         if (saved) {
             appSettings = JSON.parse(saved);
         }
@@ -236,38 +229,85 @@
 
     function applySettings() {
         document.getElementById('header-username').innerText = appSettings.username;
-        // カレンダー再描画（色変更反映のため）
         if(calendar) calendar.render();
         if(allEvents.length > 0) updateTimeline(allEvents);
     }
 
+    // 設定モーダルを開くときの描画処理
     function openSettings() {
         document.getElementById('setting-username').value = appSettings.username;
-        document.getElementById('color-work').value = appSettings.colors.work;
-        document.getElementById('color-private').value = appSettings.colors.private;
-        document.getElementById('color-soccer').value = appSettings.colors.soccer;
+        
+        const container = document.getElementById('category-list-container');
+        container.innerHTML = '';
+        
+        appSettings.categories.forEach((cat, index) => {
+            const div = document.createElement('div');
+            div.className = 'category-edit-item';
+            div.innerHTML = `
+                <input type="text" class="category-name-input" value="${cat.name}" id="cat-name-${index}">
+                <input type="color" class="color-input" value="${cat.color}" id="cat-color-${index}">
+                <button class="btn-sm btn-danger" onclick="deleteCategory(${index})">✕</button>
+            `;
+            container.appendChild(div);
+        });
+
         openModal('settings-modal');
+    }
+
+    function addNewCategoryInput() {
+        const container = document.getElementById('category-list-container');
+        const index = container.children.length;
+        const div = document.createElement('div');
+        div.className = 'category-edit-item';
+        div.innerHTML = `
+            <input type="text" class="category-name-input" placeholder="新規カテゴリ" id="cat-name-${index}">
+            <input type="color" class="color-input" value="#888888" id="cat-color-${index}">
+            <button class="btn-sm btn-danger" onclick="this.parentElement.remove()">✕</button>
+        `;
+        container.appendChild(div);
+    }
+
+    function deleteCategory(index) {
+        // 画面上から削除（保存ボタンを押すまで確定しない）
+        const item = document.getElementById(`cat-name-${index}`).parentElement;
+        item.remove();
     }
 
     function saveSettings() {
         appSettings.username = document.getElementById('setting-username').value;
-        appSettings.colors.work = document.getElementById('color-work').value;
-        appSettings.colors.private = document.getElementById('color-private').value;
-        appSettings.colors.soccer = document.getElementById('color-soccer').value;
         
-        localStorage.setItem('sukesuke_settings', JSON.stringify(appSettings));
+        // カテゴリリストの再構築
+        const container = document.getElementById('category-list-container');
+        const newCategories = [];
+        const items = container.querySelectorAll('.category-edit-item');
+        
+        items.forEach(item => {
+            const nameInput = item.querySelector('.category-name-input');
+            const colorInput = item.querySelector('.color-input');
+            if(nameInput && nameInput.value.trim() !== "") {
+                newCategories.push({
+                    name: nameInput.value.trim(),
+                    color: colorInput.value
+                });
+            }
+        });
+        
+        appSettings.categories = newCategories;
+        
+        localStorage.setItem('sukesuke_settings_v2', JSON.stringify(appSettings));
         applySettings();
         closeModal('settings-modal');
         alert("設定を保存しました！");
     }
+
 
     // --- カレンダー処理 ---
     function initCalendar() {
         var calendarEl = document.getElementById('calendar');
         calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth', locale: 'ja',
-            height: '100%', // 画面いっぱいに
-            dayMaxEvents: false, // ★重要：すべて描画して、CSSでスクロールさせる
+            height: '100%', 
+            dayMaxEvents: false, // ★重要：スクロールはCSSで制御するためFalse
             headerToolbar: { left: 'title', right: 'today prev,next' },
             dayCellContent: function(e) { e.dayNumberText = e.dayNumberText.replace('日', ''); },
             eventClick: function(info) { showEventDetail(info.event); },
@@ -282,33 +322,51 @@
     function fetchData() { fetch(GAS_URL).then(r=>r.json()).then(d=>{ allEvents=d; updateCalendar(d); updateTimeline(d); }).catch(e=>console.error(e)); }
     function updateCalendar(d) { calendar.removeAllEvents(); calendar.addEventSource(d.map(i=>({title:i.title,start:i.start,end:i.end,extendedProps:{category:i.category,memo:i.memo}}))); }
 
-    // タイムライン更新
+    // タイムライン更新（設定のカテゴリ一覧を使用）
     function updateTimeline(data) {
         const container = document.getElementById('timeline-area'); container.innerHTML = "";
         if (data.length === 0) { container.innerHTML = '<div style="padding:20px; grid-column:1/-1;">予定なし</div>'; return; }
+        
         const eventsMap = {}; let minDate = new Date(); let maxDate = new Date();
         data.forEach(item => {
-            const dateStr = new Date(item.start).toLocaleDateString(); const cat = normalizeCategory(item.category);
+            const dateStr = new Date(item.start).toLocaleDateString(); 
+            // カテゴリ正規化（設定にある名前に寄せる）
+            const cat = normalizeCategory(item.category);
             if (!eventsMap[dateStr]) eventsMap[dateStr] = {}; if (!eventsMap[dateStr][cat]) eventsMap[dateStr][cat] = [];
             eventsMap[dateStr][cat].push(item); const itemDate = new Date(item.start); if (itemDate < minDate) minDate = itemDate; if (itemDate > maxDate) maxDate = itemDate;
         });
+        
         minDate.setDate(minDate.getDate() - 2); maxDate.setDate(maxDate.getDate() + 14);
         const dateList = []; for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) dateList.push(new Date(d));
         container.style.gridTemplateColumns = `80px repeat(${dateList.length}, minmax(80px, 1fr))`;
+        
         const corner = document.createElement('div'); corner.className = 'category-label'; corner.style.gridRow = '1'; corner.style.gridColumn = '1'; corner.innerHTML = 'カテゴリー'; container.appendChild(corner);
+        
         dateList.forEach((date, i) => {
             const header = document.createElement('div'); header.className = 'date-header'; header.style.gridRow = '1'; header.style.gridColumn = `${i + 2}`;
             header.innerHTML = `${date.getMonth()+1}/${date.getDate()}(${['日','月','火','水','木','金','土'][date.getDay()]})`;
             if(date.getDay()===0) header.style.color='#dc3912'; if(date.getDay()===6) header.style.color='#3366cc'; container.appendChild(header);
         });
-        CATEGORIES.forEach((cat, catIndex) => {
-            const label = document.createElement('div'); label.className = 'category-label'; label.style.gridRow = `${catIndex + 2}`; label.style.gridColumn = '1'; label.style.borderLeft = `4px solid ${getColorByCategory(cat)}`; label.innerText = cat; container.appendChild(label);
+
+        // ★設定にあるカテゴリ順にループ
+        appSettings.categories.forEach((catObj, catIndex) => {
+            const catName = catObj.name;
+            const label = document.createElement('div'); label.className = 'category-label'; label.style.gridRow = `${catIndex + 2}`; label.style.gridColumn = '1'; 
+            label.style.borderLeft = `4px solid ${catObj.color}`; label.innerText = catName; container.appendChild(label);
+            
             dateList.forEach((date, dateIndex) => {
                 const cell = document.createElement('div'); cell.className = 'timeline-cell'; cell.style.gridRow = `${catIndex + 2}`; cell.style.gridColumn = `${dateIndex + 2}`;
                 const dateStr = date.toLocaleDateString();
-                if (eventsMap[dateStr] && eventsMap[dateStr][cat]) {
-                    eventsMap[dateStr][cat].forEach(event => {
-                        const card = document.createElement('div'); card.className = `timeline-event-card ${getBorderColorClass(event.start)}`; card.style.borderLeftColor = getColorByCategory(cat); card.innerHTML = event.title; 
+                
+                // 部分一致などで該当する予定を探す
+                const matchedKey = Object.keys(eventsMap[dateStr] || {}).find(k => k.includes(catName) || catName.includes(k));
+                
+                if (matchedKey && eventsMap[dateStr][matchedKey]) {
+                    eventsMap[dateStr][matchedKey].forEach(event => {
+                        const card = document.createElement('div'); 
+                        card.className = `timeline-event-card ${getBorderColorClass(event.start)}`; 
+                        card.style.borderLeftColor = catObj.color; 
+                        card.innerHTML = event.title; 
                         card.onclick = function() { showEventDetail({ title: event.title, start: new Date(event.start), extendedProps: { category: event.category, memo: event.memo } }); };
                         cell.appendChild(card);
                     });
@@ -323,7 +381,6 @@
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     
-    // チャット・画像送信（既存）
     function sendChatMessage() {
         const input = document.getElementById('chat-input-text'); const text = input.value.trim(); if(!text) return;
         addChatBubble(text, 'user'); input.value = '';
@@ -343,15 +400,21 @@
         .then(r => r.json()).then(result => { document.getElementById('loading-overlay').style.display = 'none'; if(result.status === 'success') { alert(result.message); fetchData(); } else { alert('エラー: ' + result.message); } }).catch(err => { document.getElementById('loading-overlay').style.display = 'none'; alert('通信エラー'); });
     }
 
-    // カテゴリ・色判定（設定値を反映）
-    function normalizeCategory(c){if(!c)return'その他';if(c.includes('仕事'))return'仕事';if(c.includes('プライベート'))return'プライベート';if(c.includes('子供')||c.includes('サッカー'))return'サッカー';return'その他';}
+    // カテゴリ判定（設定リストと照合）
+    function normalizeCategory(c){
+        if(!c) return 'その他';
+        // 設定内のカテゴリ名に部分一致するかチェック
+        for (let cat of appSettings.categories) {
+            if (c.includes(cat.name) || cat.name.includes(c)) return cat.name;
+        }
+        return 'その他';
+    }
     
     function getColorByCategory(c){
         if(!c) return '#999';
-        // 設定値から色を取得
-        if(c.includes('仕事')) return appSettings.colors.work;
-        if(c.includes('プライベート')) return appSettings.colors.private;
-        if(c.includes('子供')||c.includes('サッカー')) return appSettings.colors.soccer;
+        for (let cat of appSettings.categories) {
+            if (c.includes(cat.name) || cat.name.includes(c)) return cat.color;
+        }
         return '#999';
     }
 
