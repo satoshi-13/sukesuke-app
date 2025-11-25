@@ -13,55 +13,66 @@
         /* --- ヘッダー --- */
         #app-header {
             background: #fff; padding: 0 15px; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); height: 50px; box-sizing: border-box; z-index: 10; flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); height: 50px; box-sizing: border-box; z-index: 50; flex-shrink: 0;
         }
         .header-left { font-weight: bold; font-size: 1.1em; color: #4285f4; display: flex; align-items: center; }
         .header-right { display: flex; align-items: center; font-size: 0.9em; color: #555; }
         .settings-icon { font-size: 1.4em; margin-right: 10px; cursor: pointer; color: #777; padding: 5px; }
 
-        /* --- タイムラインエリア (1/3) --- */
+        /* --- タイムラインエリア (修正：中央揃え・余白削減) --- */
         #timeline-area {
             flex: 1; 
             background: #fff; border-bottom: 2px solid #ddd; overflow: auto;
-            display: grid; grid-template-columns: 80px repeat(auto-fill, minmax(80px, 1fr)); grid-auto-rows: minmax(50px, auto);
+            display: grid; grid-template-columns: 80px repeat(auto-fill, minmax(60px, 1fr)); /* 幅を少し狭めて一覧性向上 */
+            grid-auto-rows: minmax(50px, auto);
         }
-        .category-label { position: sticky; left: 0; background: #f8f9fa; z-index: 5; border-right: 2px solid #eee; border-bottom: 1px solid #eee; display: flex; align-items: center; padding: 0 5px; font-weight: bold; color: #555; font-size: 0.75em; }
-        .date-header { position: sticky; top: 0; background: #fff; z-index: 4; text-align: center; padding: 4px; border-bottom: 2px solid #eee; border-right: 1px solid #eee; font-weight: bold; color: #555; font-size: 0.75em; }
+        .category-label { position: sticky; left: 0; background: #f8f9fa; z-index: 20; border-right: 2px solid #eee; border-bottom: 1px solid #eee; display: flex; align-items: center; padding: 0 5px; font-weight: bold; color: #555; font-size: 0.75em; }
+        
+        /* ★修正箇所：日付ヘッダーを中央揃え、余白最小化 */
+        .date-header { 
+            position: sticky; top: 0; background: #fff; z-index: 10; 
+            text-align: center; /* 中央揃え */
+            justify-content: center; display: flex; align-items: center; flex-direction: column;
+            padding: 2px 0; /* 上下余白極小 */
+            border-bottom: 2px solid #eee; border-right: 1px solid #eee; 
+            font-weight: bold; color: #555; font-size: 0.7em; line-height: 1.2;
+        }
         .timeline-cell { border-right: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; padding: 2px; vertical-align: top; }
         .timeline-event-card { padding: 3px 4px; margin-bottom: 2px; border-radius: 3px; font-size: 0.7em; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.1); border-left-width: 4px; border-left-style: solid; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* --- カレンダーエリア (2/3) --- */
+        /* --- カレンダーエリア --- */
         #calendar-area {
             flex: 2; 
-            padding: 5px; background: #fff; overflow: hidden; position: relative;
+            padding: 5px; background: #fff; overflow: hidden; position: relative; z-index: 1;
         }
         #calendar { height: 100%; font-size: 0.85em; }
 
-        /* ★日付表示の修正（絶対表示） */
+        /* ★修正箇所：カレンダー日付の強制表示 */
         .fc-daygrid-day-top {
             flex-direction: row !important;
-            opacity: 1 !important;
+            display: flex !important;
+            justify-content: flex-start !important;
         }
         .fc-daygrid-day-number {
             font-size: 1.1em !important; 
             font-weight: bold !important; 
             color: #333 !important; 
-            z-index: 10;
-            padding: 4px !important;
+            z-index: 5;
+            padding: 2px 4px !important;
             text-decoration: none !important;
             visibility: visible !important; /* 強制表示 */
+            opacity: 1 !important;
+            position: relative; 
         }
 
-        /* ★マス内スクロール設定（ここがポイント） */
+        /* マス内スクロール設定 */
         .fc-daygrid-day-events {
-            /* 予定2つ分くらいの高さに制限（約40-50px） */
-            max-height: 48px; 
+            max-height: 50px; /* 縦幅制限 */
             overflow-y: auto !important; 
-            margin-top: 2px;
-            /* スクロールバーを見えにくくしてスッキリさせる */
-            scrollbar-width: none; /* Firefox */
+            margin-top: 0px;
+            scrollbar-width: none; 
         }
-        .fc-daygrid-day-events::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+        .fc-daygrid-day-events::-webkit-scrollbar { display: none; }
 
         /* 土日の色 */
         .fc-day-sat .fc-daygrid-day-number { color: #3366cc !important; }
@@ -132,7 +143,6 @@
             <span id="header-username">西村哲 さん</span>
         </div>
     </header>
-
     <div id="timeline-area"><div style="padding:20px; grid-column:1/-1; color:#888;">読み込み中...</div></div>
     <div id="calendar-area"><div id='calendar'></div></div>
 </div>
@@ -171,19 +181,15 @@
 <div id="settings-modal" class="modal-overlay">
     <div class="modal-content">
         <div style="font-weight:bold; margin-bottom:15px; font-size:1.2em; text-align:center;">設定</div>
-        
         <div class="settings-group">
             <label>表示名</label>
             <input type="text" id="setting-username" class="settings-input" placeholder="名前を入力">
         </div>
-
         <div class="settings-group">
             <label>カテゴリー編集</label>
-            <div id="category-list-container" class="category-edit-list">
-                </div>
+            <div id="category-list-container" class="category-edit-list"></div>
             <button class="btn-sm btn-add" onclick="addNewCategoryInput()">＋ カテゴリを追加</button>
         </div>
-
         <div style="display: flex; gap:10px; margin-top:10px;">
             <button class="btn btn-cancel" onclick="closeModal('settings-modal')">キャンセル</button>
             <button class="btn btn-submit" onclick="saveSettings()">保存</button>
@@ -194,14 +200,13 @@
 <div id="loading-overlay"><div style="font-size: 2em; margin-bottom: 10px;">🤖</div><div>処理中...</div></div>
 
 <script>
-    // ▼ GASのURL（あなたのURL）
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxS7p_2ekWJWMak9ivwKTbro11sD1QH9G2oVJOOMKpS9SKxaqJaxTf59FZvcC-_wsKg/exec";
 
     let allEvents = [];
     let calendar;
     let selectedFileBase64 = null; let selectedFileMimeType = null;
     
-    // デフォルト設定（カテゴリは配列で管理、色は別途マッピング）
+    // デフォルト設定
     let appSettings = {
         username: "西村哲 さん",
         categories: [
@@ -218,28 +223,21 @@
         fetchData(); 
     });
 
-    // --- 設定関連の処理 ---
+    // --- 設定関連 ---
     function loadSettings() {
         const saved = localStorage.getItem('sukesuke_settings_v2');
-        if (saved) {
-            appSettings = JSON.parse(saved);
-        }
+        if (saved) { appSettings = JSON.parse(saved); }
         applySettings();
     }
-
     function applySettings() {
         document.getElementById('header-username').innerText = appSettings.username;
         if(calendar) calendar.render();
         if(allEvents.length > 0) updateTimeline(allEvents);
     }
-
-    // 設定モーダルを開くときの描画処理
     function openSettings() {
         document.getElementById('setting-username').value = appSettings.username;
-        
         const container = document.getElementById('category-list-container');
         container.innerHTML = '';
-        
         appSettings.categories.forEach((cat, index) => {
             const div = document.createElement('div');
             div.className = 'category-edit-item';
@@ -250,13 +248,11 @@
             `;
             container.appendChild(div);
         });
-
         openModal('settings-modal');
     }
-
     function addNewCategoryInput() {
         const container = document.getElementById('category-list-container');
-        const index = container.children.length;
+        const index = container.children.length + Math.floor(Math.random()*1000);
         const div = document.createElement('div');
         div.className = 'category-edit-item';
         div.innerHTML = `
@@ -266,48 +262,32 @@
         `;
         container.appendChild(div);
     }
-
-    function deleteCategory(index) {
-        // 画面上から削除（保存ボタンを押すまで確定しない）
-        const item = document.getElementById(`cat-name-${index}`).parentElement;
-        item.remove();
-    }
-
+    function deleteCategory(index) { document.getElementById(`cat-name-${index}`).parentElement.remove(); }
+    
     function saveSettings() {
         appSettings.username = document.getElementById('setting-username').value;
-        
-        // カテゴリリストの再構築
         const container = document.getElementById('category-list-container');
         const newCategories = [];
-        const items = container.querySelectorAll('.category-edit-item');
-        
-        items.forEach(item => {
+        container.querySelectorAll('.category-edit-item').forEach(item => {
             const nameInput = item.querySelector('.category-name-input');
             const colorInput = item.querySelector('.color-input');
             if(nameInput && nameInput.value.trim() !== "") {
-                newCategories.push({
-                    name: nameInput.value.trim(),
-                    color: colorInput.value
-                });
+                newCategories.push({ name: nameInput.value.trim(), color: colorInput.value });
             }
         });
-        
         appSettings.categories = newCategories;
-        
         localStorage.setItem('sukesuke_settings_v2', JSON.stringify(appSettings));
         applySettings();
         closeModal('settings-modal');
         alert("設定を保存しました！");
     }
 
-
-    // --- カレンダー処理 ---
+    // --- カレンダー ---
     function initCalendar() {
         var calendarEl = document.getElementById('calendar');
         calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth', locale: 'ja',
-            height: '100%', 
-            dayMaxEvents: false, // ★重要：スクロールはCSSで制御するためFalse
+            initialView: 'dayGridMonth', locale: 'ja', height: '100%', 
+            dayMaxEvents: false, 
             headerToolbar: { left: 'title', right: 'today prev,next' },
             dayCellContent: function(e) { e.dayNumberText = e.dayNumberText.replace('日', ''); },
             eventClick: function(info) { showEventDetail(info.event); },
@@ -322,7 +302,7 @@
     function fetchData() { fetch(GAS_URL).then(r=>r.json()).then(d=>{ allEvents=d; updateCalendar(d); updateTimeline(d); }).catch(e=>console.error(e)); }
     function updateCalendar(d) { calendar.removeAllEvents(); calendar.addEventSource(d.map(i=>({title:i.title,start:i.start,end:i.end,extendedProps:{category:i.category,memo:i.memo}}))); }
 
-    // タイムライン更新（設定のカテゴリ一覧を使用）
+    // --- タイムライン（修正版） ---
     function updateTimeline(data) {
         const container = document.getElementById('timeline-area'); container.innerHTML = "";
         if (data.length === 0) { container.innerHTML = '<div style="padding:20px; grid-column:1/-1;">予定なし</div>'; return; }
@@ -330,7 +310,7 @@
         const eventsMap = {}; let minDate = new Date(); let maxDate = new Date();
         data.forEach(item => {
             const dateStr = new Date(item.start).toLocaleDateString(); 
-            // カテゴリ正規化（設定にある名前に寄せる）
+            // データ側と設定側のカテゴリ名を正規化して照合
             const cat = normalizeCategory(item.category);
             if (!eventsMap[dateStr]) eventsMap[dateStr] = {}; if (!eventsMap[dateStr][cat]) eventsMap[dateStr][cat] = [];
             eventsMap[dateStr][cat].push(item); const itemDate = new Date(item.start); if (itemDate < minDate) minDate = itemDate; if (itemDate > maxDate) maxDate = itemDate;
@@ -338,17 +318,19 @@
         
         minDate.setDate(minDate.getDate() - 2); maxDate.setDate(maxDate.getDate() + 14);
         const dateList = []; for (let d = new Date(minDate); d <= maxDate; d.setDate(d.getDate() + 1)) dateList.push(new Date(d));
-        container.style.gridTemplateColumns = `80px repeat(${dateList.length}, minmax(80px, 1fr))`;
+        container.style.gridTemplateColumns = `80px repeat(${dateList.length}, minmax(60px, 1fr))`; // 修正：幅調整
         
+        // 左上隅
         const corner = document.createElement('div'); corner.className = 'category-label'; corner.style.gridRow = '1'; corner.style.gridColumn = '1'; corner.innerHTML = 'カテゴリー'; container.appendChild(corner);
         
+        // 日付ヘッダー（修正：中央揃え）
         dateList.forEach((date, i) => {
             const header = document.createElement('div'); header.className = 'date-header'; header.style.gridRow = '1'; header.style.gridColumn = `${i + 2}`;
-            header.innerHTML = `${date.getMonth()+1}/${date.getDate()}(${['日','月','火','水','木','金','土'][date.getDay()]})`;
+            header.innerHTML = `${date.getMonth()+1}/${date.getDate()}<br><span style="font-size:0.8em">(${['日','月','火','水','木','金','土'][date.getDay()]})</span>`;
             if(date.getDay()===0) header.style.color='#dc3912'; if(date.getDay()===6) header.style.color='#3366cc'; container.appendChild(header);
         });
 
-        // ★設定にあるカテゴリ順にループ
+        // カテゴリ行
         appSettings.categories.forEach((catObj, catIndex) => {
             const catName = catObj.name;
             const label = document.createElement('div'); label.className = 'category-label'; label.style.gridRow = `${catIndex + 2}`; label.style.gridColumn = '1'; 
@@ -358,11 +340,11 @@
                 const cell = document.createElement('div'); cell.className = 'timeline-cell'; cell.style.gridRow = `${catIndex + 2}`; cell.style.gridColumn = `${dateIndex + 2}`;
                 const dateStr = date.toLocaleDateString();
                 
-                // 部分一致などで該当する予定を探す
-                const matchedKey = Object.keys(eventsMap[dateStr] || {}).find(k => k.includes(catName) || catName.includes(k));
+                // データが存在するか検索
+                const targetKey = Object.keys(eventsMap[dateStr] || {}).find(k => k === catName || k.includes(catName));
                 
-                if (matchedKey && eventsMap[dateStr][matchedKey]) {
-                    eventsMap[dateStr][matchedKey].forEach(event => {
+                if (targetKey && eventsMap[dateStr][targetKey]) {
+                    eventsMap[dateStr][targetKey].forEach(event => {
                         const card = document.createElement('div'); 
                         card.className = `timeline-event-card ${getBorderColorClass(event.start)}`; 
                         card.style.borderLeftColor = catObj.color; 
@@ -376,7 +358,7 @@
         setTimeout(() => { const t=Array.from(container.querySelectorAll('.date-header')).find(h=>h.textContent.includes(`${new Date().getMonth()+1}/${new Date().getDate()}`)); if(t)t.scrollIntoView({inline:'center',block:'nearest'}); }, 500);
     }
 
-    // ユーティリティ・モーダル処理
+    // ユーティリティ
     function showEventDetail(e) { alert(`【${e.title}】\n日時: ${e.start.toLocaleString()}\nカテゴリー: ${e.extendedProps.category}\nメモ: ${e.extendedProps.memo}`); }
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -400,7 +382,6 @@
         .then(r => r.json()).then(result => { document.getElementById('loading-overlay').style.display = 'none'; if(result.status === 'success') { alert(result.message); fetchData(); } else { alert('エラー: ' + result.message); } }).catch(err => { document.getElementById('loading-overlay').style.display = 'none'; alert('通信エラー'); });
     }
 
-    // カテゴリ判定（設定リストと照合）
     function normalizeCategory(c){
         if(!c) return 'その他';
         // 設定内のカテゴリ名に部分一致するかチェック
