@@ -51,7 +51,7 @@
       grid-row: 1;
       grid-column: 2;
       display: flex;
-      overflow-x: hidden; /* スクロールバー非表示、JSで同期 */
+      overflow-x: hidden;
       overflow-y: hidden;
       border-bottom: 2px solid #ddd;
       background: #fff;
@@ -78,7 +78,7 @@
     .timeline-category-col {
       grid-row: 2;
       grid-column: 1;
-      overflow-y: hidden; /* スクロールバー非表示、JSで同期 */
+      overflow-y: hidden;
       overflow-x: hidden;
       border-right: 2px solid #ddd;
       background: #f8f9fa;
@@ -114,7 +114,6 @@
 
     .timeline-data-grid {
       display: grid;
-      /* 列数・行数はJSで設定 */
     }
 
     .timeline-cell {
@@ -153,7 +152,7 @@
     #calendar-area { flex: 1; min-height: 0; padding: 0; background: #fff; overflow: hidden; position: relative; }
     #calendar { height: 100%; padding: 2px; padding-bottom: 2px; overflow: hidden; }
     
-    /* FullCalendar調整（高さ縮小・6週間表示対応・全体表示） */
+    /* FullCalendar調整 */
     .fc-toolbar-title { font-size: 0.95em !important; font-weight: bold; color: #333; }
     .fc-header-toolbar { margin-bottom: 0 !important; padding: 2px 0 !important; height: 28px !important; }
     .fc-daygrid-day-number { color: #888 !important; font-size: 0.7em !important; text-decoration: none !important; padding: 1px 2px !important; }
@@ -196,13 +195,12 @@
     .form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
     .checkbox-group { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; font-size: 14px; }
     
-    /* ★★★ カテゴリ設定行（修正版） ★★★ */
+    /* カテゴリ設定行 */
     #cat-setting-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
     .cat-edit-row { 
       display: flex; gap: 10px; align-items: center; 
       background: #f9f9f9; padding: 8px 10px; border-radius: 6px; border: 1px solid #eee; 
     }
-    /* 色プレビュー（クリックで色選択） */
     .cat-color-box {
       width: 32px;
       height: 32px;
@@ -212,11 +210,7 @@
       cursor: pointer;
       flex-shrink: 0;
     }
-    /* 色選択input（非表示） */
-    .cat-edit-color { 
-      display: none;
-    }
-    /* 名前入力欄を大きく表示 */
+    .cat-edit-color { display: none; }
     .cat-name-input { 
       flex: 1 1 auto;
       min-width: 0;
@@ -257,27 +251,8 @@
     #loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 4000; justify-content: center; align-items: center; flex-direction: column; color: #4285f4; font-weight: bold; }
     
     /* トースト通知 */
-    #toast-container {
-      position: fixed;
-      top: 50px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 5000;
-      pointer-events: none;
-    }
-    .toast {
-      background: #333;
-      color: #fff;
-      padding: 10px 20px;
-      border-radius: 20px;
-      font-size: 0.85em;
-      margin-bottom: 8px;
-      opacity: 0;
-      transform: translateY(-10px);
-      transition: opacity 0.3s, transform 0.3s;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      text-align: center;
-    }
+    #toast-container { position: fixed; top: 50px; left: 50%; transform: translateX(-50%); z-index: 5000; pointer-events: none; }
+    .toast { background: #333; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.85em; margin-bottom: 8px; opacity: 0; transform: translateY(-10px); transition: opacity 0.3s, transform 0.3s; box-shadow: 0 2px 8px rgba(0,0,0,0.3); text-align: center; }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.success { background: #34a853; }
     .toast.error { background: #ea4335; }
@@ -294,7 +269,6 @@
       </div>
     </header>
     
-    <!-- ★★★ 新しいタイムライン構造 ★★★ -->
     <div id="timeline-wrapper">
       <div class="timeline-corner">Category</div>
       <div class="timeline-header-row" id="timeline-header"></div>
@@ -316,22 +290,14 @@
     <div class="modal-content" style="max-width:280px;" onclick="event.stopPropagation()">
       <h3 style="margin-top:0; text-align:center;">📷 画像を追加</h3>
       <div style="display:flex; flex-direction:column; gap:10px;">
-        <button class="btn btn-save" onclick="selectCamera()" style="padding:15px; font-size:16px;">
-          📸 カメラで撮影
-        </button>
-        <button class="btn" onclick="selectGallery()" style="padding:15px; font-size:16px; background:#f0f0f0; color:#333;">
-          🖼️ ライブラリから選択
-        </button>
-        <button class="btn btn-cancel" onclick="closeModal('image-menu-modal')" style="margin-top:5px;">
-          キャンセル
-        </button>
+        <button class="btn btn-save" onclick="selectCamera()" style="padding:15px; font-size:16px;">📸 カメラで撮影</button>
+        <button class="btn" onclick="selectGallery()" style="padding:15px; font-size:16px; background:#f0f0f0; color:#333;">🖼️ ライブラリから選択</button>
+        <button class="btn btn-cancel" onclick="closeModal('image-menu-modal')" style="margin-top:5px;">キャンセル</button>
       </div>
     </div>
   </div>
   
-  <!-- カメラ用input（撮影専用） -->
   <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none;" onchange="handleImageSelect(this)">
-  <!-- ギャラリー用input（選択専用） -->
   <input type="file" id="gallery-input" accept="image/*" style="display: none;" onchange="handleImageSelect(this)">
 
   <div id="loading-overlay"><div>🔄</div><div id="loading-text">処理中...</div></div>
@@ -343,10 +309,7 @@
       <h3 style="margin-top:0;">予定を追加</h3>
       <div class="form-group"><label>タイトル</label><input type="text" id="inp-title" placeholder="例：会議"></div>
       <div class="form-group"><label>カテゴリー</label><select id="inp-category"></select></div>
-      <div class="checkbox-group">
-        <input type="checkbox" id="inp-allday" onchange="toggleTimeInput()">
-        <label for="inp-allday">終日</label>
-      </div>
+      <div class="checkbox-group"><input type="checkbox" id="inp-allday" onchange="toggleTimeInput()"><label for="inp-allday">終日</label></div>
       <div class="form-group"><label>開始</label><input type="datetime-local" id="inp-start"></div>
       <div class="form-group"><label>終了</label><input type="datetime-local" id="inp-end"></div>
       <div class="form-group"><label>メモ</label><input type="text" id="inp-memo"></div>
@@ -392,9 +355,7 @@
     <div class="modal-content">
       <h3 style="margin-top:0;" id="cell-list-date">日付</h3>
       <div id="cell-list-container" class="cell-detail-list"></div>
-      <div class="modal-actions">
-        <button class="btn btn-cancel" onclick="closeModal('cell-list-modal')">閉じる</button>
-      </div>
+      <div class="modal-actions"><button class="btn btn-cancel" onclick="closeModal('cell-list-modal')">閉じる</button></div>
     </div>
   </div>
 
@@ -403,9 +364,7 @@
     <div class="modal-content">
       <h3 style="margin-top:0;">📷 AI解析</h3>
       <img id="preview-image" style="width:100%; max-height:150px; object-fit:contain; border:1px solid #eee; margin-bottom:10px; border-radius:8px;">
-      <div style="font-size:11px; color:#666; margin-bottom:8px; background:#f9f9f9; padding:8px; border-radius:6px;">
-        💡 ヒント: 複雑な表の場合は「○○の行だけ」「11月の予定」など具体的に指示すると精度が上がります
-      </div>
+      <div style="font-size:11px; color:#666; margin-bottom:8px; background:#f9f9f9; padding:8px; border-radius:6px;">💡 ヒント: 複雑な表の場合は「○○の行だけ」「11月の予定」など具体的に指示すると精度が上がります</div>
       <textarea id="prompt-input" style="width:100%; height:60px; border:1px solid #ccc; padding:8px; box-sizing:border-box; border-radius:6px; font-size:14px;" placeholder="例: 西村の行だけ取り込んで&#10;例: 11月の公休と出張だけ登録"></textarea>
       <div class="modal-actions">
         <button class="btn btn-cancel" onclick="closeModal('upload-modal')">キャンセル</button>
@@ -447,63 +406,43 @@
       ] 
     };
     
-    // タイムライン表示用の日付範囲
     let timelineDates = [];
     let todayIndex = 0;
 
     document.addEventListener('DOMContentLoaded', async function() {
-      // まずローカル設定を読み込み（高速表示のため）
       loadSettingsLocal();
       applySettingsUI();
-      
       initCalendar();
       updateCategorySelect();
       setupTimelineSync();
       
-      // 初回読み込み
       showLoading("読込中...");
-      
-      // サーバーから設定とデータを並行読み込み
       try {
-        await Promise.all([
-          loadSettingsFromServer(),
-          loadData(false)
-        ]);
+        await Promise.all([loadSettingsFromServer(), loadData(false)]);
         showToast('✅ ' + allEvents.length + '件の予定を読み込みました', 'success');
       } catch(e) {
         console.error("初期化エラー:", e);
         showToast('⚠️ 読み込みに失敗しました', 'error');
       }
-      
       hideLoading();
     });
 
     async function loadData(showNotification = false) {
       try {
-        console.log("loadData開始");
         const data = await serverCall('getEvents');
-        console.log("データ取得完了:", data ? data.length : 0, "件");
         allEvents = data || [];
         updateCalendar(allEvents);
         updateTimeline(allEvents);
-        console.log("loadData完了");
-        
-        if (showNotification) {
-          showToast('✅ ' + allEvents.length + '件の予定を読み込みました', 'success');
-        }
+        if (showNotification) showToast('✅ ' + allEvents.length + '件の予定を読み込みました', 'success');
       } catch(e) { 
         console.error("loadDataエラー:", e); 
         allEvents = [];
         updateCalendar([]);
         updateTimeline([]);
-        
-        if (showNotification) {
-          showToast('❌ 読み込みに失敗しました', 'error');
-        }
+        if (showNotification) showToast('❌ 読み込みに失敗しました', 'error');
       }
     }
 
-    // --- 終日切替 ---
     function toggleTimeInput() {
       const isAllDay = document.getElementById('inp-allday').checked;
       const type = isAllDay ? 'date' : 'datetime-local';
@@ -511,24 +450,9 @@
       document.getElementById('inp-end').type = type;
     }
 
-    // ★★★ 詳細・削除（強化版） ★★★
     function showEventDetail(eventObj) {
-      // IDを確実に取得
-      let id = null;
-      if (eventObj.id) {
-        id = eventObj.id;
-      } else if (eventObj.extendedProps && eventObj.extendedProps.id) {
-        id = eventObj.extendedProps.id;
-      }
-      
-      console.log("詳細表示 - eventObj:", eventObj);
-      console.log("詳細表示 - 取得したID:", id);
-      
-      if (!id) {
-        console.error("IDが取得できません");
-        alert("エラー: 予定のIDが取得できません");
-        return;
-      }
+      let id = eventObj.id || (eventObj.extendedProps && eventObj.extendedProps.id);
+      if (!id) { alert("エラー: 予定のIDが取得できません"); return; }
       
       document.getElementById('detail-id').value = id;
       document.getElementById('detail-title').innerText = eventObj.title || "無題";
@@ -537,9 +461,7 @@
       let dateStr = "";
       if (d) {
         const isAllDay = eventObj.allDay || (eventObj.extendedProps && eventObj.extendedProps.allDay);
-        dateStr = isAllDay ? 
-          `${d.getMonth()+1}/${d.getDate()} (終日)` : 
-          `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+        dateStr = isAllDay ? `${d.getMonth()+1}/${d.getDate()} (終日)` : `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
       }
       
       const category = (eventObj.extendedProps && eventObj.extendedProps.category) || eventObj.category || "";
@@ -549,202 +471,103 @@
       openModal('detail-modal');
     }
 
-    // ★★★ 削除機能（強化版） ★★★
     async function deleteCurrentEvent() {
-      const idElement = document.getElementById('detail-id');
-      const id = idElement ? idElement.value : null;
-      
-      console.log("削除ボタン押下");
-      console.log("削除対象ID:", id);
-      console.log("ID要素:", idElement);
-      
-      if (!id || id === "" || id === "undefined") {
-        alert("削除対象のIDが取得できません");
-        console.error("IDが無効:", id);
-        return;
-      }
-      
-      if (!confirm("この予定を削除しますか？")) {
-        return;
-      }
+      const id = document.getElementById('detail-id').value;
+      if (!id || id === "" || id === "undefined") { alert("削除対象のIDが取得できません"); return; }
+      if (!confirm("この予定を削除しますか？")) return;
       
       closeModal('detail-modal');
       closeModal('cell-list-modal');
       showLoading("削除中...");
       
       try {
-        console.log("サーバーに削除リクエスト送信:", id);
         const res = await serverCall('deleteEvent', id);
-        console.log("サーバーからの応答:", res);
-        
         if (res && res.status === 'success') {
-          console.log("削除成功、データ再読み込み開始");
-          try {
-            await loadData(false);
-          } catch(loadError) {
-            console.error("データ再読み込みエラー:", loadError);
-          }
+          await loadData(false);
           hideLoading();
           showToast('🗑️ 削除しました', 'success');
         } else {
           hideLoading();
-          const msg = res ? res.message : "不明なエラー";
-          showToast('❌ 削除失敗: ' + msg, 'error', 3500);
-          console.error("削除失敗:", res);
+          showToast('❌ 削除失敗: ' + (res ? res.message : "不明なエラー"), 'error', 3500);
         }
       } catch(e) {
         hideLoading();
-        console.error("削除エラー:", e);
         showToast('❌ 通信エラー', 'error');
       }
     }
 
-    // ★★★ 画像選択メニュー ★★★
-    function openImageMenu() {
-      openModal('image-menu-modal');
-    }
-    
-    function selectCamera() {
-      closeModal('image-menu-modal');
-      document.getElementById('camera-input').click();
-    }
-    
-    function selectGallery() {
-      closeModal('image-menu-modal');
-      document.getElementById('gallery-input').click();
-    }
+    function openImageMenu() { openModal('image-menu-modal'); }
+    function selectCamera() { closeModal('image-menu-modal'); document.getElementById('camera-input').click(); }
+    function selectGallery() { closeModal('image-menu-modal'); document.getElementById('gallery-input').click(); }
     
     function handleImageSelect(input) {
       if (!input.files || !input.files[0]) return;
-      
       const file = input.files[0];
-      console.log("ファイル選択:", file.name, file.type, file.size);
-      
       const reader = new FileReader();
       reader.onload = e => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
           const ctx = canvas.getContext('2d');
-          
-          // 最大サイズを1024pxに制限
           const MAX_SIZE = 1024;
-          let w = img.width;
-          let h = img.height;
-          
-          if (w > h) {
-            if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; }
-          } else {
-            if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; }
-          }
-          
-          canvas.width = w;
-          canvas.height = h;
+          let w = img.width, h = img.height;
+          if (w > h) { if (w > MAX_SIZE) { h *= MAX_SIZE / w; w = MAX_SIZE; } }
+          else { if (h > MAX_SIZE) { w *= MAX_SIZE / h; h = MAX_SIZE; } }
+          canvas.width = w; canvas.height = h;
           ctx.drawImage(img, 0, 0, w, h);
-          
-          // 圧縮後のBase64
           const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
           selectedFileBase64 = dataUrl.split(',')[1];
-          
           document.getElementById('preview-image').src = dataUrl;
           document.getElementById('prompt-input').value = "";
           openModal('upload-modal');
         };
-        img.onerror = () => {
-          alert("画像の読み込みに失敗しました");
-        };
         img.src = e.target.result;
-      };
-      reader.onerror = () => {
-        alert("ファイルの読み込みに失敗しました");
       };
       reader.readAsDataURL(file);
       input.value = '';
     }
 
-    // --- セル内一覧 ---
     function showCellEvents(dateStr, events) {
       if (events.length === 0) return;
-      
       document.getElementById('cell-list-date').innerText = dateStr;
       const container = document.getElementById('cell-list-container');
       container.innerHTML = "";
-      
       events.forEach(e => {
         const div = document.createElement('div');
         div.className = 'cell-detail-item';
-        
         const timeStr = e.allDay ? "終日" : (e.start ? new Date(e.start).toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'}) : "");
         div.innerHTML = `<span>${e.title}</span><span style="font-size:0.8em; color:#666;">${timeStr}</span>`;
-        
-        div.onclick = () => {
-          // FullCalendarのイベント形式に変換
-          showEventDetail({
-            id: e.id,
-            title: e.title,
-            start: e.start,
-            allDay: e.allDay,
-            extendedProps: { category: e.category, memo: e.memo }
-          });
-        };
+        div.onclick = () => showEventDetail({ id: e.id, title: e.title, start: e.start, allDay: e.allDay, extendedProps: { category: e.category, memo: e.memo } });
         container.appendChild(div);
       });
-      
       openModal('cell-list-modal');
     }
 
-    // ★★★ タイムライン描画（新構造） ★★★
     function updateTimeline(data) {
       const headerRow = document.getElementById('timeline-header');
       const categoryCol = document.getElementById('timeline-categories');
       const dataArea = document.getElementById('timeline-data');
-      
-      headerRow.innerHTML = "";
-      categoryCol.innerHTML = "";
-      dataArea.innerHTML = "";
+      headerRow.innerHTML = ""; categoryCol.innerHTML = ""; dataArea.innerHTML = "";
 
-      // 日付範囲を生成（過去6ヶ月〜未来6ヶ月 = 約1年分）
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
-      let min = new Date(today);
-      min.setMonth(min.getMonth() - 6); // 6ヶ月前
-      let max = new Date(today);
-      max.setMonth(max.getMonth() + 6); // 6ヶ月後
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      let min = new Date(today); min.setMonth(min.getMonth() - 6);
+      let max = new Date(today); max.setMonth(max.getMonth() + 6);
       
       timelineDates = [];
-      for (let d = new Date(min); d <= max; d.setDate(d.getDate() + 1)) {
-        timelineDates.push(new Date(d));
-      }
-      
-      // 今日のインデックスを記録
-      todayIndex = timelineDates.findIndex(d => 
-        d.getFullYear() === today.getFullYear() &&
-        d.getMonth() === today.getMonth() &&
-        d.getDate() === today.getDate()
-      );
+      for (let d = new Date(min); d <= max; d.setDate(d.getDate() + 1)) timelineDates.push(new Date(d));
+      todayIndex = timelineDates.findIndex(d => d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate());
 
-      // 日付ヘッダーを生成
       timelineDates.forEach((d, i) => {
         const cell = document.createElement('div');
         cell.className = 'date-header-cell';
-        
-        const dayOfWeek = d.getDay();
-        if (dayOfWeek === 0) cell.classList.add('sunday');
-        if (dayOfWeek === 6) cell.classList.add('saturday');
-        
-        if (d.getFullYear() === today.getFullYear() &&
-            d.getMonth() === today.getMonth() &&
-            d.getDate() === today.getDate()) {
-          cell.classList.add('today');
-        }
-        
+        if (d.getDay() === 0) cell.classList.add('sunday');
+        if (d.getDay() === 6) cell.classList.add('saturday');
+        if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate()) cell.classList.add('today');
         const dayNames = ['日','月','火','水','木','金','土'];
-        cell.innerHTML = `${d.getMonth()+1}/${d.getDate()}<span style="font-size:0.85em;">${dayNames[dayOfWeek]}</span>`;
+        cell.innerHTML = `${d.getMonth()+1}/${d.getDate()}<span style="font-size:0.85em;">${dayNames[d.getDay()]}</span>`;
         headerRow.appendChild(cell);
       });
 
-      // カテゴリーラベルを生成
       userSettings.categories.forEach(cat => {
         const label = document.createElement('div');
         label.className = 'category-label-cell';
@@ -753,7 +576,6 @@
         categoryCol.appendChild(label);
       });
 
-      // データグリッドを生成
       const grid = document.createElement('div');
       grid.className = 'timeline-data-grid';
       grid.style.gridTemplateColumns = `repeat(${timelineDates.length}, 48px)`;
@@ -763,23 +585,15 @@
         timelineDates.forEach((d, dateIdx) => {
           const cell = document.createElement('div');
           cell.className = 'timeline-cell';
-          
-          // 今日の列をハイライト
-          if (d.getFullYear() === today.getFullYear() &&
-              d.getMonth() === today.getMonth() &&
-              d.getDate() === today.getDate()) {
-            cell.classList.add('today-col');
-          }
+          if (d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate()) cell.classList.add('today-col');
           
           const dateKey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
           const dayEvents = data.filter(e => {
             if (!e.start) return false;
             const ed = new Date(e.start);
-            return `${ed.getFullYear()}-${ed.getMonth()}-${ed.getDate()}` === dateKey && 
-                   e.category && e.category.includes(cat.name);
+            return `${ed.getFullYear()}-${ed.getMonth()}-${ed.getDate()}` === dateKey && e.category && e.category.includes(cat.name);
           });
 
-          // 最大2件表示
           dayEvents.slice(0, 2).forEach(e => {
             const card = document.createElement('div');
             card.className = `timeline-event-card ${getUrgencyClass(e.start)}`;
@@ -787,57 +601,39 @@
             card.innerText = e.title;
             cell.appendChild(card);
           });
-          
-          // 3件以上ある場合は+表示
           if (dayEvents.length > 2) {
             const more = document.createElement('div');
-            more.style.fontSize = '0.45em';
-            more.style.color = '#999';
-            more.style.lineHeight = '1';
+            more.style.fontSize = '0.45em'; more.style.color = '#999'; more.style.lineHeight = '1';
             more.innerText = `+${dayEvents.length - 2}`;
             cell.appendChild(more);
           }
-          
           cell.onclick = () => showCellEvents(`${d.getMonth()+1}/${d.getDate()}（${cat.name}）`, dayEvents);
           grid.appendChild(cell);
         });
       });
-
       dataArea.appendChild(grid);
-      
-      // 初期スクロール位置を今日に設定
       scrollTimelineToToday();
     }
 
-    // ★★★ タイムラインスクロール同期設定 ★★★
     function setupTimelineSync() {
       const headerRow = document.getElementById('timeline-header');
       const categoryCol = document.getElementById('timeline-categories');
       const dataArea = document.getElementById('timeline-data');
-
-      // データエリアのスクロール → ヘッダーとカテゴリに同期
       dataArea.addEventListener('scroll', function() {
         headerRow.scrollLeft = this.scrollLeft;
         categoryCol.scrollTop = this.scrollTop;
       }, { passive: true });
     }
 
-    // ★★★ タイムラインを今日にスクロール ★★★
     function scrollTimelineToToday() {
       const dataArea = document.getElementById('timeline-data');
       const headerRow = document.getElementById('timeline-header');
-      
       if (todayIndex > 0) {
-        const scrollPos = Math.max(0, (todayIndex - 2) * 48); // 2日前から表示（48pxに変更）
-        setTimeout(() => {
-          dataArea.scrollLeft = scrollPos;
-          headerRow.scrollLeft = scrollPos;
-        }, 50);
+        const scrollPos = Math.max(0, (todayIndex - 2) * 48);
+        setTimeout(() => { dataArea.scrollLeft = scrollPos; headerRow.scrollLeft = scrollPos; }, 50);
       }
     }
 
-    // --- チャット ---
-    // --- チャット（スケジュール操作対応） ---
     async function sendChat() {
       const input = document.getElementById('chat-input');
       const text = input.value.trim();
@@ -845,10 +641,8 @@
       
       const hist = document.getElementById('chat-history');
       hist.innerHTML += `<div style="text-align:right; margin:5px;"><span style="background:#e3f2fd; padding:8px; border-radius:8px; display:inline-block; font-size:0.9em;">${escapeHtml(text)}</span></div>`;
-      input.value = "";
-      hist.scrollTop = hist.scrollHeight;
+      input.value = ""; hist.scrollTop = hist.scrollHeight;
       
-      // ローディング表示
       const loadingId = 'chat-loading-' + Date.now();
       hist.innerHTML += `<div id="${loadingId}" style="text-align:left; margin:5px;"><span style="background:#fff; padding:8px; border-radius:8px; display:inline-block; font-size:0.9em; border:1px solid #eee;">🔄 考え中...</span></div>`;
       hist.scrollTop = hist.scrollHeight;
@@ -857,176 +651,88 @@
         const res = await serverCall('processChat', text);
         document.getElementById(loadingId)?.remove();
         
-        let content = '';
-        let messageStyle = 'background:#fff; border:1px solid #eee;';
-        
+        let content = '', messageStyle = 'background:#fff; border:1px solid #eee;';
         if (res.status === 'success') {
           content = res.answer || '処理しました';
-          
-          // アクションに応じてスタイルとデータ更新
-          if (res.action === 'add' && res.eventAdded) {
-            messageStyle = 'background:#e8f5e9; border:1px solid #a5d6a7;';
-            content = '✅ ' + content;
-            await loadData(false);
-            showToast('📅 予定を追加しました', 'success');
-          } else if (res.action === 'update' && res.eventUpdated) {
-            messageStyle = 'background:#fff3e0; border:1px solid #ffcc80;';
-            content = '📝 ' + content;
-            await loadData(false);
-            showToast('📝 予定を変更しました', 'success');
-          } else if (res.action === 'delete' && res.eventDeleted) {
-            messageStyle = 'background:#ffebee; border:1px solid #ef9a9a;';
-            content = '🗑️ ' + content;
-            await loadData(false);
-            showToast('🗑️ 予定を削除しました', 'success');
-          }
-        } else {
-          content = '⚠️ エラー: ' + res.answer;
-          messageStyle = 'background:#ffebee; border:1px solid #ef9a9a;';
-        }
+          if (res.action === 'add' && res.eventAdded) { messageStyle = 'background:#e8f5e9; border:1px solid #a5d6a7;'; content = '✅ ' + content; await loadData(false); showToast('📅 予定を追加しました', 'success'); }
+          else if (res.action === 'update' && res.eventUpdated) { messageStyle = 'background:#fff3e0; border:1px solid #ffcc80;'; content = '📝 ' + content; await loadData(false); showToast('📝 予定を変更しました', 'success'); }
+          else if (res.action === 'delete' && res.eventDeleted) { messageStyle = 'background:#ffebee; border:1px solid #ef9a9a;'; content = '🗑️ ' + content; await loadData(false); showToast('🗑️ 予定を削除しました', 'success'); }
+        } else { content = '⚠️ エラー: ' + res.answer; messageStyle = 'background:#ffebee; border:1px solid #ef9a9a;'; }
         
         hist.innerHTML += `<div style="text-align:left; margin:5px;"><span style="${messageStyle} padding:8px; border-radius:8px; display:inline-block; font-size:0.9em;">${escapeHtml(content)}</span></div>`;
         hist.scrollTop = hist.scrollHeight;
-      } catch(e) {
-        document.getElementById(loadingId)?.remove();
-        hist.innerHTML += `<div style="text-align:left; margin:5px; color:red;">⚠️ 通信エラー</div>`;
-      }
+      } catch(e) { document.getElementById(loadingId)?.remove(); hist.innerHTML += `<div style="text-align:left; margin:5px; color:red;">⚠️ 通信エラー</div>`; }
     }
     
-    function escapeHtml(text) {
-      return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
-    }
+    function escapeHtml(text) { return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>'); }
 
-    // ★★★ カレンダー初期化（Todayボタン強化） ★★★
     function initCalendar() {
       const el = document.getElementById('calendar');
       calendar = new FullCalendar.Calendar(el, {
-        initialView: 'dayGridMonth',
-        locale: 'ja',
-        height: '100%',
-        fixedWeekCount: true, // 常に6週間表示
-        dayMaxEvents: 2, // 1日に表示する最大イベント数
+        initialView: 'dayGridMonth', locale: 'ja', height: '100%', fixedWeekCount: true, dayMaxEvents: 2,
         headerToolbar: { left: 'title', right: 'customToday prev,next' },
-        customButtons: {
-          customToday: {
-            text: '今日',
-            click: function() {
-              // カレンダーを今日に移動
-              calendar.today();
-              // タイムラインも今日にスクロール
-              scrollTimelineToToday();
-            }
-          }
-        },
+        customButtons: { customToday: { text: '今日', click: function() { calendar.today(); scrollTimelineToToday(); } } },
         dayCellContent: e => ({ html: e.dayNumberText.replace('日','') }),
         eventClick: info => showEventDetail(info.event),
-        eventContent: arg => {
-          const color = getCatColor(arg.event.extendedProps.category);
-          return { html: `<span style="color:${color}; font-size:0.7em;">●</span><span style="font-size:0.65em;"> ${escapeHtml(arg.event.title)}</span>` };
-        }
+        eventContent: arg => { const color = getCatColor(arg.event.extendedProps.category); return { html: `<span style="color:${color}; font-size:0.7em;">●</span><span style="font-size:0.65em;"> ${escapeHtml(arg.event.title)}</span>` }; }
       });
       calendar.render();
     }
 
     function updateCalendar(data) {
       calendar.removeAllEvents();
-      const events = data.map(i => ({
-        id: i.id,
-        title: i.title,
-        start: i.start,
-        end: i.end,
-        allDay: i.allDay,
-        extendedProps: { category: i.category, memo: i.memo }
-      }));
+      const events = data.map(i => ({ id: i.id, title: i.title, start: i.start, end: i.end, allDay: i.allDay, extendedProps: { category: i.category, memo: i.memo } }));
       calendar.addEventSource(events);
     }
 
-    // --- モーダル・ローディング・トースト ---
     function openModal(id) { document.getElementById(id).style.display = 'flex'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
     function showLoading(txt) { document.getElementById('loading-overlay').style.display = 'flex'; document.getElementById('loading-text').innerText = txt; }
     function hideLoading() { document.getElementById('loading-overlay').style.display = 'none'; }
     
-    // トースト通知
     function showToast(message, type = 'info', duration = 2500) {
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
-      toast.className = 'toast ' + type;
-      toast.innerText = message;
+      toast.className = 'toast ' + type; toast.innerText = message;
       container.appendChild(toast);
-      
-      // 表示アニメーション
       setTimeout(() => toast.classList.add('show'), 10);
-      
-      // 非表示＆削除
-      setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-      }, duration);
+      setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 300); }, duration);
     }
     
     function openAddModal() {
       const now = new Date();
       now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
       document.getElementById('inp-title').value = "";
-      document.getElementById('inp-start').value = now.toISOString().slice(0,10); // 日付のみ
-      document.getElementById('inp-end').value = now.toISOString().slice(0,10); // 日付のみ
+      document.getElementById('inp-start').value = now.toISOString().slice(0,10);
+      document.getElementById('inp-end').value = now.toISOString().slice(0,10);
       document.getElementById('inp-memo').value = "";
-      document.getElementById('inp-allday').checked = true; // デフォルトで終日
+      document.getElementById('inp-allday').checked = true;
       toggleTimeInput();
       updateCategorySelect();
       openModal('add-modal');
     }
 
-    // --- 設定関連（サーバー同期対応） ---
-    
-    // サーバーから設定を読み込み
     async function loadSettingsFromServer() {
       try {
-        console.log("サーバーから設定読み込み中...");
         const res = await serverCall('loadUserSettings');
-        
         if (res && res.status === 'success' && res.settings) {
           userSettings = res.settings;
-          // ローカルにもキャッシュ
           localStorage.setItem('sukesuke_settings', JSON.stringify(userSettings));
-          console.log("サーバー設定読み込み完了:", userSettings.name);
-        } else {
-          console.log("サーバー設定なし、ローカル設定を使用");
-          loadSettingsLocal();
-        }
-      } catch(e) {
-        console.error("サーバー設定読み込みエラー:", e);
-        // フォールバック: ローカルから読み込み
-        loadSettingsLocal();
-      }
+        } else { loadSettingsLocal(); }
+      } catch(e) { loadSettingsLocal(); }
       applySettingsUI();
     }
     
-    // ローカルから設定を読み込み（フォールバック用）
     function loadSettingsLocal() {
       const saved = localStorage.getItem('sukesuke_settings');
-      if (saved) {
-        try {
-          userSettings = JSON.parse(saved);
-        } catch(e) {
-          console.error("ローカル設定の読み込みエラー:", e);
-        }
-      }
+      if (saved) { try { userSettings = JSON.parse(saved); } catch(e) {} }
     }
 
     function applySettingsUI() {
-      // 「さん」がついていなければ自動付与
       let displayName = userSettings.name || "ゲスト";
-      if (!displayName.endsWith("さん")) {
-        displayName = displayName + " さん";
-      }
+      if (!displayName.endsWith("さん")) displayName = displayName + " さん";
       document.getElementById('user-name-display').textContent = displayName;
-      
-      if (allEvents.length > 0) {
-        updateCalendar(allEvents);
-        updateTimeline(allEvents);
-      }
+      if (allEvents.length > 0) { updateCalendar(allEvents); updateTimeline(allEvents); }
       updateCategorySelect();
     }
 
@@ -1040,60 +746,31 @@
     
     function addCatSettingRow(name = "", color = "#555555") {
       const list = document.getElementById('cat-setting-list');
-      const div = document.createElement('div');
-      div.className = 'cat-edit-row';
+      const div = document.createElement('div'); div.className = 'cat-edit-row';
       
-      // 色表示ボックス（タップで色選択）
       const colorBox = document.createElement('div');
       colorBox.className = 'cat-color-box';
       colorBox.style.backgroundColor = color || "#555555";
       
-      // 隠し色選択input
       const colorInput = document.createElement('input');
-      colorInput.type = 'color';
-      colorInput.className = 'cat-edit-color';
+      colorInput.type = 'color'; colorInput.className = 'cat-edit-color';
       colorInput.value = color || "#555555";
       
-      // 色ボックスをタップしたら色選択を開く
-      colorBox.addEventListener('click', function(e) {
-        e.preventDefault();
-        colorInput.click();
-      });
+      colorBox.addEventListener('click', function(e) { e.preventDefault(); colorInput.click(); });
+      colorInput.addEventListener('input', function() { colorBox.style.backgroundColor = this.value; });
+      colorInput.addEventListener('change', function() { colorBox.style.backgroundColor = this.value; });
       
-      // 色が変更されたらボックスの色も更新
-      colorInput.addEventListener('input', function() {
-        colorBox.style.backgroundColor = this.value;
-      });
-      colorInput.addEventListener('change', function() {
-        colorBox.style.backgroundColor = this.value;
-      });
-      
-      // 名前入力欄
       const nameInput = document.createElement('input');
-      nameInput.type = 'text';
-      nameInput.className = 'cat-name-input';
-      nameInput.value = name || "";
-      nameInput.placeholder = 'カテゴリ名';
+      nameInput.type = 'text'; nameInput.className = 'cat-name-input';
+      nameInput.value = name || ""; nameInput.placeholder = 'カテゴリ名';
       
-      // 削除ボタン
       const delBtn = document.createElement('button');
-      delBtn.type = 'button'; // フォーム送信防止
-      delBtn.className = 'btn-del-cat';
-      delBtn.textContent = '✕';
-      
-      // iOS対応：touchendとclickの両方をハンドル
-      function handleDelete(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        div.remove();
-      }
+      delBtn.type = 'button'; delBtn.className = 'btn-del-cat'; delBtn.textContent = '✕';
+      function handleDelete(e) { e.preventDefault(); e.stopPropagation(); div.remove(); }
       delBtn.addEventListener('click', handleDelete);
       delBtn.addEventListener('touchend', handleDelete);
       
-      div.appendChild(colorBox);
-      div.appendChild(colorInput);
-      div.appendChild(nameInput);
-      div.appendChild(delBtn);
+      div.appendChild(colorBox); div.appendChild(colorInput); div.appendChild(nameInput); div.appendChild(delBtn);
       list.appendChild(div);
     }
     
@@ -1110,27 +787,14 @@
         const color = colorEl ? colorEl.value : '#555555';
         if (name) newCats.push({ name, color });
       });
+      if (newCats.length > 0) userSettings.categories = newCats;
       
-      if (newCats.length > 0) {
-        userSettings.categories = newCats;
-      }
-      
-      // ローカルに保存
       localStorage.setItem('sukesuke_settings', JSON.stringify(userSettings));
-      
-      // サーバーにも保存
       try {
         const res = await serverCall('saveUserSettings', userSettings);
-        if (res && res.status === 'success') {
-          showToast('✅ 設定を保存しました', 'success');
-        } else {
-          showToast('⚠️ サーバー保存に失敗（ローカルには保存済み）', 'info');
-        }
-      } catch(e) {
-        console.error("設定保存エラー:", e);
-        showToast('⚠️ サーバー保存に失敗（ローカルには保存済み）', 'info');
-      }
-      
+        if (res && res.status === 'success') showToast('✅ 設定を保存しました', 'success');
+        else showToast('⚠️ サーバー保存に失敗（ローカルには保存済み）', 'info');
+      } catch(e) { showToast('⚠️ サーバー保存に失敗（ローカルには保存済み）', 'info'); }
       applySettingsUI();
       closeModal('settings-modal');
     }
@@ -1138,106 +802,43 @@
     function updateCategorySelect() {
       const sel = document.getElementById('inp-category');
       sel.innerHTML = "";
-      userSettings.categories.forEach(cat => {
-        const op = document.createElement('option');
-        op.value = cat.name;
-        op.text = cat.name;
-        sel.appendChild(op);
-      });
+      userSettings.categories.forEach(cat => { const op = document.createElement('option'); op.value = cat.name; op.text = cat.name; sel.appendChild(op); });
     }
     
     async function submitManual() {
       const title = document.getElementById('inp-title').value.trim();
       const start = document.getElementById('inp-start').value;
+      if (!title) { alert("タイトルを入力してください"); return; }
+      if (!start) { alert("開始日時を入力してください"); return; }
       
-      if (!title) {
-        alert("タイトルを入力してください");
-        return;
-      }
-      if (!start) {
-        alert("開始日時を入力してください");
-        return;
-      }
-      
-      closeModal('add-modal');
-      showLoading("登録中...");
-      
-      const payload = { 
-        title: title,
-        category: document.getElementById('inp-category').value, 
-        start: start,
-        end: document.getElementById('inp-end').value || start, 
-        memo: document.getElementById('inp-memo').value,
-        allDay: document.getElementById('inp-allday').checked
-      };
+      closeModal('add-modal'); showLoading("登録中...");
+      const payload = { title: title, category: document.getElementById('inp-category').value, start: start, end: document.getElementById('inp-end').value || start, memo: document.getElementById('inp-memo').value, allDay: document.getElementById('inp-allday').checked };
       
       try {
         const res = await serverCall('saveManualEvent', payload);
-        if (res.status === 'success') {
-          await loadData(false);
-          hideLoading();
-          showToast('✅ 予定を登録しました', 'success');
-        } else {
-          hideLoading();
-          showToast('❌ 登録エラー: ' + res.message, 'error', 3500);
-        }
-      } catch(e) {
-        hideLoading();
-        showToast('❌ 通信エラー', 'error');
-      }
+        if (res.status === 'success') { await loadData(false); hideLoading(); showToast('✅ 予定を登録しました', 'success'); }
+        else { hideLoading(); showToast('❌ 登録エラー: ' + res.message, 'error', 3500); }
+      } catch(e) { hideLoading(); showToast('❌ 通信エラー', 'error'); }
     }
     
-    // ★★★ 画像送信 ★★★
     let selectedFileBase64 = null;
     
     async function submitImage() {
-      if (!selectedFileBase64) {
-        showToast('❌ 画像が選択されていません', 'error');
-        return;
-      }
-      
-      closeModal('upload-modal');
-      showLoading("🤖 AI解析中...");
-      
+      if (!selectedFileBase64) { showToast('❌ 画像が選択されていません', 'error'); return; }
+      closeModal('upload-modal'); showLoading("🤖 AI解析中...");
       const prompt = document.getElementById('prompt-input').value;
       
       try {
-        console.log("画像解析リクエスト送信");
         const res = await serverCall('processImage', selectedFileBase64, 'image/jpeg', prompt);
-        console.log("画像解析結果:", res);
-        
-        await loadData(false);
-        hideLoading();
-        
-        if (res.status === 'error') {
-          showToast('❌ ' + res.message, 'error', 4000);
-        } else {
-          showToast('✅ ' + res.message, 'success', 3000);
-        }
-      } catch(e) {
-        hideLoading();
-        console.error("画像解析エラー:", e);
-        showToast('❌ 通信エラー: ' + e, 'error', 4000);
-      }
-      
+        await loadData(false); hideLoading();
+        if (res.status === 'error') showToast('❌ ' + res.message, 'error', 4000);
+        else showToast('✅ ' + res.message, 'success', 3000);
+      } catch(e) { hideLoading(); showToast('❌ 通信エラー: ' + e, 'error', 4000); }
       selectedFileBase64 = null;
     }
     
-    // --- ユーティリティ ---
-    function getCatColor(c) {
-      const found = userSettings.categories.find(cat => c && c.includes(cat.name));
-      return found ? found.color : '#999';
-    }
-
-    function getUrgencyClass(d) {
-      if (!d) return '';
-      const diff = Math.ceil((new Date(d) - new Date()) / (864e5));
-      if (diff <= 1) return 'border-gold';
-      if (diff <= 3) return 'border-red';
-      if (diff <= 7) return 'border-blue';
-      if (diff <= 14) return 'border-green';
-      return '';
-    }
+    function getCatColor(c) { const found = userSettings.categories.find(cat => c && c.includes(cat.name)); return found ? found.color : '#999'; }
+    function getUrgencyClass(d) { if (!d) return ''; const diff = Math.ceil((new Date(d) - new Date()) / (864e5)); if (diff <= 1) return 'border-gold'; if (diff <= 3) return 'border-red'; if (diff <= 7) return 'border-blue'; if (diff <= 14) return 'border-green'; return ''; }
   </script>
 </body>
 </html>
